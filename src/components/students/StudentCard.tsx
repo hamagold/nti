@@ -47,7 +47,10 @@ export function StudentCard({
           <h3 className="font-bold text-lg text-foreground truncate">
             {student.name}
           </h3>
-          <div className="flex items-center gap-2 mt-1">
+          <p className="text-xs font-mono text-primary font-semibold mb-1">
+            {student.code}
+          </p>
+          <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
               {department.icon} {department.name}
             </Badge>

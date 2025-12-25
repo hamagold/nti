@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
 import Payments from "./pages/Payments";
@@ -23,61 +25,80 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Index />
+            </ProtectedRoute>
+          } />
           <Route
             path="/students"
             element={
-              <MainLayout>
-                <Students />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Students />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/payments"
             element={
-              <MainLayout>
-                <Payments />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Payments />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/invoices"
             element={
-              <MainLayout>
-                <Invoices />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Invoices />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/staff"
             element={
-              <MainLayout>
-                <Staff />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Staff />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/expenses"
             element={
-              <MainLayout>
-                <Expenses />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Expenses />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/reports"
             element={
-              <MainLayout>
-                <Reports />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Reports />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route
             path="/settings"
             element={
-              <MainLayout>
-                <Settings />
-              </MainLayout>
+              <ProtectedRoute>
+                <MainLayout>
+                  <Settings />
+                </MainLayout>
+              </ProtectedRoute>
             }
           />
           <Route path="*" element={<NotFound />} />

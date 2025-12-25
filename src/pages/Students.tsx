@@ -43,9 +43,10 @@ export default function Students() {
 
   // Filter students
   const filteredStudents = students.filter((student) => {
-    const matchesSearch = student.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch = 
+      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.phone.includes(searchQuery) ||
+      student.code?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesDept =
       filterDept === 'all' || student.department === filterDept;
     const matchesRoom = filterRoom === 'all' || student.room === filterRoom;
@@ -87,7 +88,7 @@ export default function Students() {
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="گەڕان بۆ قوتابی..."
+                placeholder="گەڕان بە ناو، کۆد، یان ژمارە..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pr-10 bg-card"
