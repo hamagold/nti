@@ -4,6 +4,7 @@ export type Year = 1 | 2 | 3 | 4 | 5;
 
 export interface Student {
   id: string;
+  code: string;
   name: string;
   phone: string;
   address: string;
@@ -16,6 +17,17 @@ export interface Student {
   registrationDate: string;
   payments: Payment[];
 }
+
+// Generate student code: NTI-DEPT-YEAR-NUMBER
+export const generateStudentCode = (department: Department, year: Year, existingStudents: Student[]): string => {
+  const deptCode = department.substring(0, 3).toUpperCase();
+  const yearStr = year.toString().padStart(2, '0');
+  const sameTypeStudents = existingStudents.filter(
+    s => s.department === department && s.year === year
+  );
+  const nextNum = (sameTypeStudents.length + 1).toString().padStart(3, '0');
+  return `NTI-${deptCode}-${yearStr}-${nextNum}`;
+};
 
 export interface Payment {
   id: string;

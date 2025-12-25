@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useStore } from '@/store/useStore';
-import { Student, Department, Room, Year, DEPARTMENTS, ROOMS, YEARS } from '@/types';
+import { Student, Department, Room, Year, DEPARTMENTS, ROOMS, YEARS, generateStudentCode } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -27,7 +27,7 @@ interface StudentFormProps {
 }
 
 export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProps) {
-  const { addStudent, updateStudent } = useStore();
+  const { students, addStudent, updateStudent } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState({
@@ -38,6 +38,7 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
     department: editStudent?.department || '' as Department,
     room: editStudent?.room || '' as Room,
     year: editStudent?.year?.toString() || '',
+    totalFee: editStudent?.totalFee?.toString() || '',
   });
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,23 +55,29 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.phone || !formData.department || !formData.room || !formData.year) {
+    if (!formData.name || !formData.phone || !formData.department || !formData.room || !formData.year || !formData.totalFee) {
       toast.error('تکایە هەموو خانەکان پڕبکەوە');
       return;
     }
 
-    const department = DEPARTMENTS.find(d => d.id === formData.department);
+    const customFee = parseFloat(formData.totalFee);
     
     if (editStudent) {
       updateStudent(editStudent.id, {
         ...formData,
         year: parseInt(formData.year) as Year,
-        totalFee: department?.yearlyFee || 0,
+        totalFee: customFee,
       });
       toast.success('زانیاری قوتابی نوێکرایەوە');
     } else {
+      const studentCode = generateStudentCode(
+        formData.department as Department,
+        parseInt(formData.year) as Year,
+        students
+      );
       const newStudent: Student = {
         id: crypto.randomUUID(),
+        code: studentCode,
         name: formData.name,
         phone: formData.phone,
         address: formData.address,
@@ -78,7 +85,7 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
         department: formData.department as Department,
         room: formData.room as Room,
         year: parseInt(formData.year) as Year,
-        totalFee: department?.yearlyFee || 0,
+        totalFee: customFee,
         paidAmount: 0,
         registrationDate: new Date().toISOString(),
         payments: [],
@@ -96,6 +103,7 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
       department: '' as Department,
       room: '' as Room,
       year: '',
+      totalFee: '',
     });
   };
 
@@ -258,6 +266,23 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="totalFee">کرێی خوێندن (دینار)</Label>
+              <Input
+                id="totalFee"
+                type="number"
+                value={formData.totalFee}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, totalFee: e.target.value }))
+                }
+                placeholder="بڕی کرێی خوێندن بۆ ئەم قوتابی"
+                className="bg-muted/50"
+              />
+              <p className="text-xs text-muted-foreground">
+                کرێی خوێندن بۆ هەر قوتابی جیاوازە و دەتوانی خۆت دیاری بکەیت
+              </p>
             </div>
           </div>
 
