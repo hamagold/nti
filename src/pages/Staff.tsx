@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
-import { Staff as StaffType, formatCurrency, DEPARTMENTS, Department } from '@/types';
+import { Staff as StaffType, formatCurrency, DEPARTMENTS, Department, MONTHS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,24 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase } from 'lucide-react';
+import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase, Banknote } from 'lucide-react';
+import { StaffSalaryDialog } from '@/components/staff/StaffSalaryDialog';
+import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 
 export default function Staff() {
   const { staff, addStaff, updateStaff, deleteStaff } = useStore();
   const [formOpen, setFormOpen] = useState(false);
   const [editStaff, setEditStaff] = useState<StaffType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [salaryStaff, setSalaryStaff] = useState<StaffType | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -49,6 +42,12 @@ export default function Staff() {
   const teachers = staff.filter((s) => s.role === 'teacher');
   const employees = staff.filter((s) => s.role === 'employee');
   const totalSalaries = staff.reduce((sum, s) => sum + s.salary, 0);
+  
+  const currentYear = new Date().getFullYear();
+  const totalPaidThisYear = staff.reduce((sum, s) => {
+    const payments = s.salaryPayments || [];
+    return sum + payments.filter(p => p.year === currentYear).reduce((pSum, p) => pSum + p.amount, 0);
+  }, 0);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +73,7 @@ export default function Staff() {
       addStaff({
         id: crypto.randomUUID(),
         ...staffData,
+        salaryPayments: [],
       });
       toast.success('ستاف بە سەرکەوتوویی زیاد کرا');
     }
@@ -113,6 +113,11 @@ export default function Staff() {
     });
   };
 
+  const getPaidMonthsCount = (member: StaffType) => {
+    const payments = member.salaryPayments || [];
+    return payments.filter(p => p.year === currentYear).length;
+  };
+
   return (
     <div className="min-h-screen pb-8">
       <Header
@@ -122,7 +127,7 @@ export default function Staff() {
 
       <div className="p-8">
         {/* Stats */}
-        <div className="grid gap-6 mb-8 md:grid-cols-3">
+        <div className="grid gap-6 mb-8 md:grid-cols-4">
           <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center">
@@ -153,8 +158,20 @@ export default function Staff() {
                 <Users className="h-6 w-6 text-accent-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کۆی مووچەکان</p>
+                <p className="text-sm text-muted-foreground">کۆی مووچەی مانگانە</p>
                 <p className="text-2xl font-bold text-foreground">{formatCurrency(totalSalaries)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up" style={{ animationDelay: '300ms' }}>
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-xl bg-success/20 flex items-center justify-center">
+                <Banknote className="h-6 w-6 text-success" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">دراوە لەم ساڵە</p>
+                <p className="text-2xl font-bold text-success">{formatCurrency(totalPaidThisYear)}</p>
               </div>
             </div>
           </div>
@@ -182,70 +199,103 @@ export default function Staff() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {staff.map((member, index) => (
-              <div
-                key={member.id}
-                className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      {member.role === 'teacher' ? (
-                        <GraduationCap className="h-6 w-6 text-primary" />
-                      ) : (
-                        <Briefcase className="h-6 w-6 text-primary" />
-                      )}
+            {staff.map((member, index) => {
+              const paidMonths = getPaidMonthsCount(member);
+              
+              return (
+                <div
+                  key={member.id}
+                  className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up cursor-pointer hover:shadow-xl transition-shadow"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                  onClick={() => setSalaryStaff(member)}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        {member.role === 'teacher' ? (
+                          <GraduationCap className="h-6 w-6 text-primary" />
+                        ) : (
+                          <Briefcase className="h-6 w-6 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-bold text-foreground">{member.name}</p>
+                        <Badge variant={member.role === 'teacher' ? 'default' : 'secondary'}>
+                          {member.role === 'teacher' ? 'مامۆستا' : 'کارمەند'}
+                        </Badge>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-foreground">{member.name}</p>
-                      <Badge variant={member.role === 'teacher' ? 'default' : 'secondary'}>
-                        {member.role === 'teacher' ? 'مامۆستا' : 'کارمەند'}
-                      </Badge>
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEdit(member)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteId(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleEdit(member)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={() => setDeleteId(member.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
 
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">ژمارەی مۆبایل:</span>
-                    <span>{member.phone}</span>
-                  </div>
-                  {member.department && (
+                  <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">بەش:</span>
-                      <span>
-                        {DEPARTMENTS.find((d) => d.id === member.department)?.name}
+                      <span className="text-muted-foreground">ژمارەی مۆبایل:</span>
+                      <span>{member.phone}</span>
+                    </div>
+                    {member.department && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">بەش:</span>
+                        <span>
+                          {DEPARTMENTS.find((d) => d.id === member.department)?.name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between pt-2 border-t border-border">
+                      <span className="text-muted-foreground">مووچەی مانگانە:</span>
+                      <span className="font-bold text-primary">
+                        {formatCurrency(member.salary)}
                       </span>
                     </div>
-                  )}
-                  <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="text-muted-foreground">مووچە:</span>
-                    <span className="font-bold text-primary">
-                      {formatCurrency(member.salary)}
-                    </span>
+                  </div>
+
+                  {/* Monthly Payment Progress */}
+                  <div className="mt-4 pt-4 border-t border-border">
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">مانگی دراو ({currentYear}):</span>
+                      <span className={paidMonths === 12 ? 'text-success font-bold' : 'text-destructive font-bold'}>
+                        {paidMonths} / 12
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-success rounded-full transition-all"
+                        style={{ width: `${(paidMonths / 12) * 100}%` }}
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSalaryStaff(member);
+                      }}
+                    >
+                      <Banknote className="h-4 w-4 ml-2" />
+                      پارەدانی مووچە
+                    </Button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
@@ -366,26 +416,23 @@ export default function Staff() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>دڵنیایی لە سڕینەوە؟</AlertDialogTitle>
-            <AlertDialogDescription>
-              ئەم کردارە ناگەڕێتەوە. هەموو زانیاریەکانی ستاف دەسڕێتەوە.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>پاشگەزبوونەوە</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              سڕینەوە
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Salary Dialog */}
+      {salaryStaff && (
+        <StaffSalaryDialog
+          staff={salaryStaff}
+          open={!!salaryStaff}
+          onOpenChange={(open) => !open && setSalaryStaff(null)}
+        />
+      )}
+
+      {/* Password Confirmation for Delete */}
+      <PasswordConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="سڕینەوەی ستاف"
+        description="ئەم کردارە ناگەڕێتەوە. تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون."
+      />
     </div>
   );
 }

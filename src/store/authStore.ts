@@ -3,20 +3,26 @@ import { persist } from 'zustand/middleware';
 
 interface AuthState {
   isAuthenticated: boolean;
+  username: string;
+  password: string;
   login: (username: string, password: string) => boolean;
   logout: () => void;
+  updateCredentials: (username: string, password: string) => void;
 }
 
-const ADMIN_USERNAME = 'adminNTI';
-const ADMIN_PASSWORD = 'kurdistan';
+const DEFAULT_USERNAME = 'adminNTI';
+const DEFAULT_PASSWORD = 'kurdistan';
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
+      username: DEFAULT_USERNAME,
+      password: DEFAULT_PASSWORD,
       
       login: (username: string, password: string) => {
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        const state = get();
+        if (username === state.username && password === state.password) {
           set({ isAuthenticated: true });
           return true;
         }
@@ -24,6 +30,10 @@ export const useAuthStore = create<AuthState>()(
       },
       
       logout: () => set({ isAuthenticated: false }),
+      
+      updateCredentials: (username: string, password: string) => {
+        set({ username, password });
+      },
     }),
     {
       name: 'auth-storage',

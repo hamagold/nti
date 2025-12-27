@@ -14,16 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 import { toast } from 'sonner';
 import { Plus, Search, GraduationCap } from 'lucide-react';
 
@@ -188,26 +179,14 @@ export default function Students() {
         student={selectedStudent}
       />
 
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>دڵنیایی لە سڕینەوە؟</AlertDialogTitle>
-            <AlertDialogDescription>
-              ئەم کردارە ناگەڕێتەوە. هەموو زانیاریەکانی قوتابی دەسڕێتەوە.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>پاشگەزبوونەوە</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              سڕینەوە
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Password Confirmation for Delete */}
+      <PasswordConfirmDialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="سڕینەوەی قوتابی"
+        description="ئەم کردارە ناگەڕێتەوە. تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون."
+      />
     </div>
   );
 }

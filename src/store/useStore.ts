@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Student, Payment, Staff, Expense } from '@/types';
+import { Student, Payment, Staff, Expense, SalaryPayment } from '@/types';
 
 interface AppState {
   students: Student[];
@@ -17,6 +17,7 @@ interface AppState {
   addStaff: (staff: Staff) => void;
   updateStaff: (id: string, staff: Partial<Staff>) => void;
   deleteStaff: (id: string) => void;
+  addSalaryPayment: (staffId: string, payment: SalaryPayment) => void;
   
   // Expense actions
   addExpense: (expense: Expense) => void;
@@ -59,7 +60,7 @@ export const useStore = create<AppState>()(
         })),
       
       addStaff: (staff) =>
-        set((state) => ({ staff: [...state.staff, staff] })),
+        set((state) => ({ staff: [...state.staff, { ...staff, salaryPayments: staff.salaryPayments || [] }] })),
       
       updateStaff: (id, updatedStaff) =>
         set((state) => ({
@@ -71,6 +72,18 @@ export const useStore = create<AppState>()(
       deleteStaff: (id) =>
         set((state) => ({
           staff: state.staff.filter((s) => s.id !== id),
+        })),
+
+      addSalaryPayment: (staffId, payment) =>
+        set((state) => ({
+          staff: state.staff.map((s) =>
+            s.id === staffId
+              ? {
+                  ...s,
+                  salaryPayments: [...(s.salaryPayments || []), payment],
+                }
+              : s
+          ),
         })),
       
       addExpense: (expense) =>
