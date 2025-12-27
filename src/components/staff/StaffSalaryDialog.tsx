@@ -41,7 +41,8 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
   const [lastPayment, setLastPayment] = useState<SalaryPayment | null>(null);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const years = [currentYear - 1, currentYear, currentYear + 1];
+  // Years from 2026 to 2035
+  const years = Array.from({ length: 10 }, (_, i) => 2026 + i);
   
   const staffPayments = staff.salaryPayments || [];
   const paidMonths = staffPayments

@@ -15,14 +15,23 @@ import {
 export default function Reports() {
   const { students, staff, expenses } = useStore();
 
-  // Calculate all statistics
+  // Calculate all statistics with ACTUAL paid salaries
   const totalStudents = students.length;
   const totalIncome = students.reduce((sum, s) => sum + s.paidAmount, 0);
   const totalExpected = students.reduce((sum, s) => sum + s.totalFee, 0);
   const totalDebt = totalExpected - totalIncome;
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalSalaries = staff.reduce((sum, s) => sum + s.salary, 0);
-  const netProfit = totalIncome - totalExpenses - totalSalaries;
+  
+  // Calculate ACTUAL paid salaries (not monthly salary * staff count)
+  const totalPaidSalaries = staff.reduce((sum, s) => {
+    const staffSalaryPayments = s.salaryPayments || [];
+    return sum + staffSalaryPayments.reduce((paySum, p) => paySum + p.amount, 0);
+  }, 0);
+  
+  // Monthly expected salaries (for reference)
+  const totalMonthlyExpectedSalaries = staff.reduce((sum, s) => sum + s.salary, 0);
+  
+  const netProfit = totalIncome - totalExpenses - totalPaidSalaries;
   const profitPercentage = totalIncome > 0 ? ((netProfit / totalIncome) * 100).toFixed(1) : 0;
 
   // Department statistics
@@ -89,7 +98,10 @@ export default function Reports() {
                 <span className="text-sm text-destructive font-medium">کۆی خەرجیەکان</span>
               </div>
               <p className="text-3xl font-bold text-destructive">
-                {formatCurrency(totalExpenses + totalSalaries)}
+                {formatCurrency(totalExpenses + totalPaidSalaries)}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                خەرجی: {formatCurrency(totalExpenses)} | مووچە: {formatCurrency(totalPaidSalaries)}
               </p>
             </div>
 
@@ -201,9 +213,10 @@ export default function Reports() {
               <span className="font-semibold">ستاف</span>
             </div>
             <p className="text-4xl font-bold text-foreground mb-2">{staff.length}</p>
-            <p className="text-sm text-muted-foreground">
-              کۆی مووچەکان: {formatCurrency(totalSalaries)}
-            </p>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>مووچەی دراو: <span className="text-success font-semibold">{formatCurrency(totalPaidSalaries)}</span></p>
+              <p>مووچەی مانگانە: {formatCurrency(totalMonthlyExpectedSalaries)}</p>
+            </div>
           </div>
 
           <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up" style={{ animationDelay: '600ms' }}>
