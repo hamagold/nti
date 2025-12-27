@@ -37,6 +37,16 @@ export interface Payment {
   note?: string;
 }
 
+export interface SalaryPayment {
+  id: string;
+  staffId: string;
+  month: number; // 1-12
+  year: number;
+  amount: number;
+  date: string;
+  note?: string;
+}
+
 export interface Staff {
   id: string;
   name: string;
@@ -45,7 +55,23 @@ export interface Staff {
   department?: Department;
   salary: number;
   joinDate: string;
+  salaryPayments: SalaryPayment[];
 }
+
+export const MONTHS = [
+  { id: 1, name: 'کانوونی دووەم' },
+  { id: 2, name: 'شوبات' },
+  { id: 3, name: 'ئازار' },
+  { id: 4, name: 'نیسان' },
+  { id: 5, name: 'ئایار' },
+  { id: 6, name: 'حوزەیران' },
+  { id: 7, name: 'تەمووز' },
+  { id: 8, name: 'ئاب' },
+  { id: 9, name: 'ئەیلوول' },
+  { id: 10, name: 'تشرینی یەکەم' },
+  { id: 11, name: 'تشرینی دووەم' },
+  { id: 12, name: 'کانوونی یەکەم' },
+];
 
 export interface Expense {
   id: string;
