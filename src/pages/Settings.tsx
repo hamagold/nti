@@ -1,6 +1,18 @@
 import { Header } from '@/components/layout/Header';
-import { DEPARTMENTS, formatCurrency } from '@/types';
-import { Settings as SettingsIcon, Building2, GraduationCap } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DepartmentManagement } from '@/components/settings/DepartmentManagement';
+import { AdminManagement } from '@/components/settings/AdminManagement';
+import { ContactManagement } from '@/components/settings/ContactManagement';
+import { ActivityLogView } from '@/components/settings/ActivityLogView';
+import { NotificationSettings } from '@/components/settings/NotificationSettings';
+import {
+  Building2,
+  Users,
+  Phone,
+  History,
+  Bell,
+  Settings as SettingsIcon,
+} from 'lucide-react';
 
 export default function Settings() {
   return (
@@ -10,81 +22,127 @@ export default function Settings() {
         subtitle="ڕێکخستنی سیستەم و زانیاری پەیمانگا"
       />
 
-      <div className="p-8 space-y-8">
-        {/* Institute Info */}
-        <div className="rounded-2xl bg-card p-8 shadow-lg animate-slide-up">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground">زانیاری پەیمانگا</h2>
-              <p className="text-sm text-muted-foreground">زانیاری سەرەکی</p>
-            </div>
-          </div>
+      <div className="p-4 md:p-8">
+        <Tabs defaultValue="departments" className="space-y-6">
+          <TabsList className="flex flex-wrap h-auto gap-2 bg-muted/50 p-2 rounded-xl">
+            <TabsTrigger
+              value="departments"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">بەشەکان</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="admins"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">ئەدمین</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="contact"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Phone className="h-4 w-4" />
+              <span className="hidden sm:inline">پەیوەندی</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Bell className="h-4 w-4" />
+              <span className="hidden sm:inline">ئاگاداری</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="logs"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <History className="h-4 w-4" />
+              <span className="hidden sm:inline">لۆگ</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-4">
-            <div className="flex justify-between p-4 rounded-xl bg-muted/50">
-              <span className="text-muted-foreground">ناوی پەیمانگا:</span>
-              <span className="font-bold">پەیمانگای تەکنیکی نیشتمانی</span>
-            </div>
-            <div className="flex justify-between p-4 rounded-xl bg-muted/50">
-              <span className="text-muted-foreground">ژمارەی بەشەکان:</span>
-              <span className="font-bold">4 بەش</span>
-            </div>
-            <div className="flex justify-between p-4 rounded-xl bg-muted/50">
-              <span className="text-muted-foreground">ژوورەکان بۆ هەر بەشێک:</span>
-              <span className="font-bold">A, B, C</span>
-            </div>
-            <div className="flex justify-between p-4 rounded-xl bg-muted/50">
-              <span className="text-muted-foreground">ماوەی خوێندن:</span>
-              <span className="font-bold">5 ساڵ</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Departments */}
-        <div className="rounded-2xl bg-card p-8 shadow-lg animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-xl gradient-secondary flex items-center justify-center">
-              <GraduationCap className="h-6 w-6 text-secondary-foreground" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-foreground">بەشەکان و کرێ</h2>
-              <p className="text-sm text-muted-foreground">کرێی سالانەی هەر بەشێک</p>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            {DEPARTMENTS.map((dept, index) => (
-              <div
-                key={dept.id}
-                className="p-6 rounded-xl bg-muted/50 border border-border animate-slide-up"
-                style={{ animationDelay: `${(index + 2) * 100}ms` }}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-4xl">{dept.icon}</span>
-                  <div>
-                    <p className="font-bold text-lg text-foreground">{dept.name}</p>
-                    <p className="text-sm text-muted-foreground">بەشی {dept.id}</p>
-                  </div>
+          <TabsContent value="departments">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl gradient-primary flex items-center justify-center">
+                  <Building2 className="h-6 w-6 text-primary-foreground" />
                 </div>
-                <div className="mt-4 pt-4 border-t border-border">
-                  <p className="text-sm text-muted-foreground">کرێی سالانە:</p>
-                  <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(dept.yearlyFee)}
-                  </p>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی بەشەکان</h2>
+                  <p className="text-sm text-muted-foreground">زیادکردن و دەستکاری بەشەکان و کرێی سالانە</p>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+              <DepartmentManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="admins">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl gradient-secondary flex items-center justify-center">
+                  <Users className="h-6 w-6 text-secondary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی ئەدمین</h2>
+                  <p className="text-sm text-muted-foreground">زیادکردن، دەستکاری پاسۆرد و ڕۆڵ</p>
+                </div>
+              </div>
+              <AdminManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="contact">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl gradient-accent flex items-center justify-center">
+                  <Phone className="h-6 w-6 text-accent-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">زانیاری پەیوەندی</h2>
+                  <p className="text-sm text-muted-foreground">ئیمەیل، ژمارەی مۆبایل و ناونیشان</p>
+                </div>
+              </div>
+              <ContactManagement />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl bg-warning/20 flex items-center justify-center">
+                  <Bell className="h-6 w-6 text-warning" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">ڕێکخستنی ئاگاداریەکان</h2>
+                  <p className="text-sm text-muted-foreground">ڕێکخستنی ماوەی ئاگاداری بۆ پارەدان</p>
+                </div>
+              </div>
+              <NotificationSettings />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="logs">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center">
+                  <History className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">کۆتا گۆرانکاریەکان</h2>
+                  <p className="text-sm text-muted-foreground">لۆگی تەواوی گۆرانکاریەکان</p>
+                </div>
+              </div>
+              <ActivityLogView />
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {/* Developer Info */}
-        <div className="rounded-2xl bg-card p-8 shadow-lg animate-slide-up" style={{ animationDelay: '500ms' }}>
+        <div className="mt-8 rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-12 w-12 rounded-xl gradient-accent flex items-center justify-center">
-              <SettingsIcon className="h-6 w-6 text-accent-foreground" />
+            <div className="h-12 w-12 rounded-xl gradient-hero flex items-center justify-center">
+              <SettingsIcon className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
               <h2 className="text-xl font-bold text-foreground">دەربارەی سیستەم</h2>
