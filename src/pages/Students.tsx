@@ -3,6 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { StudentForm } from '@/components/students/StudentForm';
 import { StudentCard } from '@/components/students/StudentCard';
 import { PaymentDialog } from '@/components/payments/PaymentDialog';
+import { PaymentHistoryDialog } from '@/components/students/PaymentHistoryDialog';
 import { useStore } from '@/store/useStore';
 import { Student, DEPARTMENTS, ROOMS, YEARS, Department, Room, Year } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,10 @@ export default function Students() {
   const { students, deleteStudent } = useStore();
   const [formOpen, setFormOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [editStudent, setEditStudent] = useState<Student | undefined>();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [historyStudent, setHistoryStudent] = useState<Student | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Filters
@@ -54,6 +57,11 @@ export default function Students() {
   const handlePayment = (student: Student) => {
     setSelectedStudent(student);
     setPaymentOpen(true);
+  };
+
+  const handleViewHistory = (student: Student) => {
+    setHistoryStudent(student);
+    setHistoryOpen(true);
   };
 
   const handleDelete = () => {
@@ -158,6 +166,7 @@ export default function Students() {
                 onEdit={handleEdit}
                 onDelete={(id) => setDeleteId(id)}
                 onPayment={handlePayment}
+                onViewHistory={handleViewHistory}
                 delay={index * 50}
               />
             ))}
@@ -177,6 +186,13 @@ export default function Students() {
         open={paymentOpen}
         onOpenChange={setPaymentOpen}
         student={selectedStudent}
+      />
+
+      {/* Payment History Dialog */}
+      <PaymentHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        student={historyStudent}
       />
 
       {/* Password Confirmation for Delete */}
