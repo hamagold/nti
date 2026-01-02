@@ -2,13 +2,14 @@ import { Student, formatCurrency, getDepartmentInfo } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Phone, MapPin, CreditCard, Trash2, Edit, User } from 'lucide-react';
+import { Phone, MapPin, CreditCard, Trash2, Edit, User, History } from 'lucide-react';
 
 interface StudentCardProps {
   student: Student;
   onEdit: (student: Student) => void;
   onDelete: (id: string) => void;
   onPayment: (student: Student) => void;
+  onViewHistory?: (student: Student) => void;
   delay?: number;
 }
 
@@ -17,6 +18,7 @@ export function StudentCard({
   onEdit,
   onDelete,
   onPayment,
+  onViewHistory,
   delay = 0,
 }: StudentCardProps) {
   const department = getDepartmentInfo(student.department);
@@ -112,6 +114,17 @@ export function StudentCard({
           <CreditCard className="h-4 w-4 ml-1" />
           پارەدان
         </Button>
+        {onViewHistory && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 text-primary hover:text-primary hover:bg-primary/10"
+            onClick={() => onViewHistory(student)}
+            title="مێژووی پارەدانەکان"
+          >
+            <History className="h-4 w-4" />
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
