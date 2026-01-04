@@ -1,39 +1,47 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useSettingsStore } from './settingsStore';
 
 interface AuthState {
   isAuthenticated: boolean;
-  username: string;
-  password: string;
+  currentUser: string | null;
+  currentRole: 'admin' | 'manager' | 'viewer' | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
-  updateCredentials: (username: string, password: string) => void;
 }
-
-const DEFAULT_USERNAME = 'adminNTI';
-const DEFAULT_PASSWORD = 'kurdistan';
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       isAuthenticated: false,
-      username: DEFAULT_USERNAME,
-      password: DEFAULT_PASSWORD,
+      currentUser: null,
+      currentRole: null,
       
       login: (username: string, password: string) => {
-        const state = get();
-        if (username === state.username && password === state.password) {
-          set({ isAuthenticated: true });
+        // Get admins from settings store
+        const { admins } = useSettingsStore.getState();
+        
+        // Find matching admin
+        const admin = admins.find(
+          a => a.username === username && a.password === password
+        );
+        
+        if (admin) {
+          set({ 
+            isAuthenticated: true, 
+            currentUser: admin.username,
+            currentRole: admin.role 
+          });
           return true;
         }
         return false;
       },
       
-      logout: () => set({ isAuthenticated: false }),
-      
-      updateCredentials: (username: string, password: string) => {
-        set({ username, password });
-      },
+      logout: () => set({ 
+        isAuthenticated: false, 
+        currentUser: null, 
+        currentRole: null 
+      }),
     }),
     {
       name: 'auth-storage',
