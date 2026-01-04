@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
-import { formatCurrency, DEPARTMENTS } from '@/types';
+import { formatCurrency, DEPARTMENTS, Department } from '@/types';
 import {
   TrendingUp,
   TrendingDown,
@@ -10,21 +11,53 @@ import {
   Building2,
   PieChart,
   BarChart3,
+  Filter,
 } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 export default function Reports() {
   const { students, staff, expenses } = useStore();
+  const currentYear = new Date().getFullYear();
+  
+  // Filters
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>(currentYear);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | 'all'>('all');
+  
+  // Years from 2024 to 2035
+  const years = Array.from({ length: 12 }, (_, i) => 2024 + i);
+
+  // Filter students
+  const filteredStudents = students.filter(s => {
+    if (selectedDepartment !== 'all' && s.department !== selectedDepartment) return false;
+    return true;
+  });
 
   // Calculate all statistics with ACTUAL paid salaries
-  const totalStudents = students.length;
-  const totalIncome = students.reduce((sum, s) => sum + s.paidAmount, 0);
-  const totalExpected = students.reduce((sum, s) => sum + s.totalFee, 0);
+  const totalStudents = filteredStudents.length;
+  const totalIncome = filteredStudents.reduce((sum, s) => sum + s.paidAmount, 0);
+  const totalExpected = filteredStudents.reduce((sum, s) => sum + s.totalFee, 0);
   const totalDebt = totalExpected - totalIncome;
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   
-  // Calculate ACTUAL paid salaries (not monthly salary * staff count)
+  // Filter expenses by year
+  const filteredExpenses = expenses.filter(e => {
+    if (selectedYear === 'all') return true;
+    return new Date(e.date).getFullYear() === selectedYear;
+  });
+  const totalExpenses = filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  
+  // Calculate ACTUAL paid salaries filtered by year
   const totalPaidSalaries = staff.reduce((sum, s) => {
-    const staffSalaryPayments = s.salaryPayments || [];
+    const staffSalaryPayments = (s.salaryPayments || []).filter(p => {
+      if (selectedYear === 'all') return true;
+      return p.year === selectedYear;
+    });
     return sum + staffSalaryPayments.reduce((paySum, p) => paySum + p.amount, 0);
   }, 0);
   
@@ -36,7 +69,7 @@ export default function Reports() {
 
   // Department statistics
   const departmentStats = DEPARTMENTS.map((dept) => {
-    const deptStudents = students.filter((s) => s.department === dept.id);
+    const deptStudents = filteredStudents.filter((s) => s.department === dept.id);
     const deptIncome = deptStudents.reduce((sum, s) => sum + s.paidAmount, 0);
     const deptExpected = deptStudents.reduce((sum, s) => sum + s.totalFee, 0);
     return {
@@ -49,16 +82,59 @@ export default function Reports() {
     };
   });
 
-  const currentYear = new Date().getFullYear();
-
   return (
     <div className="min-h-screen pb-8">
       <Header
         title="ڕاپۆرتەکان"
-        subtitle={`ڕاپۆرتی ساڵی ${currentYear}`}
+        subtitle={selectedYear === 'all' ? 'ڕاپۆرتی هەموو ساڵەکان' : `ڕاپۆرتی ساڵی ${selectedYear}`}
       />
 
       <div className="p-8 space-y-8">
+        {/* Filters */}
+        <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up">
+          <div className="flex items-center gap-3 mb-4">
+            <Filter className="h-5 w-5 text-primary" />
+            <h3 className="font-bold text-foreground">فلتەرکردن</h3>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>ساڵ</Label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(v) => setSelectedYear(v === 'all' ? 'all' : parseInt(v))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="ساڵ هەڵبژێرە" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">هەموو ساڵەکان</SelectItem>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>بەش</Label>
+              <Select
+                value={selectedDepartment}
+                onValueChange={(v) => setSelectedDepartment(v as Department | 'all')}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="بەش هەڵبژێرە" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">هەموو بەشەکان</SelectItem>
+                  {DEPARTMENTS.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>
+                      {dept.icon} {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
         {/* Main Stats */}
         <div className="rounded-2xl bg-card p-8 shadow-lg animate-slide-up">
           <div className="flex items-center gap-3 mb-6">
