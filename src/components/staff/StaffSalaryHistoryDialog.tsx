@@ -20,9 +20,7 @@ export function StaffSalaryHistoryDialog({ open, onOpenChange, staff }: StaffSal
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  if (!staff) return null;
-
-  const payments = staff.salaryPayments || [];
+  const payments = staff?.salaryPayments || [];
 
   // Filter payments by date range
   const filteredPayments = useMemo(() => {
@@ -44,6 +42,8 @@ export function StaffSalaryHistoryDialog({ open, onOpenChange, staff }: StaffSal
     setStartDate(undefined);
     setEndDate(undefined);
   };
+
+  if (!staff) return null;
 
   const getMonthName = (monthId: number) => {
     return MONTHS.find(m => m.id === monthId)?.name || '';
