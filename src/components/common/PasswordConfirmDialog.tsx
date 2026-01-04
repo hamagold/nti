@@ -13,6 +13,7 @@ import {
 import { toast } from 'sonner';
 import { Lock, AlertTriangle } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface PasswordConfirmDialogProps {
   open: boolean;
@@ -30,10 +31,14 @@ export function PasswordConfirmDialog({
   description = 'تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون',
 }: PasswordConfirmDialogProps) {
   const [password, setPassword] = useState('');
-  const { password: adminPassword } = useAuthStore();
+  const { currentUser } = useAuthStore();
+  const { admins } = useSettingsStore();
 
   const handleConfirm = () => {
-    if (password === adminPassword) {
+    // Find current logged in admin and verify their password
+    const currentAdmin = admins.find(a => a.username === currentUser);
+    
+    if (currentAdmin && password === currentAdmin.password) {
       onConfirm();
       setPassword('');
       onOpenChange(false);

@@ -24,7 +24,6 @@ const ROLES = [
 
 export function AdminManagement() {
   const { admins, addAdmin, updateAdmin, deleteAdmin, addActivityLog } = useSettingsStore();
-  const { updateCredentials } = useAuthStore();
   const { toast } = useToast();
   
   const [isAdding, setIsAdding] = useState(false);
@@ -41,7 +40,7 @@ export function AdminManagement() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleAdd = () => {
-    if (!newUsername || !newPassword) {
+    if (!newUsername.trim() || !newPassword.trim()) {
       toast({
         title: 'هەڵە',
         description: 'تکایە ناوی بەکارهێنەر و پاسۆرد بنووسە',
@@ -50,21 +49,31 @@ export function AdminManagement() {
       return;
     }
 
+    // Check if username already exists
+    if (admins.some(a => a.username.toLowerCase() === newUsername.trim().toLowerCase())) {
+      toast({
+        title: 'هەڵە',
+        description: 'ئەم ناوی بەکارهێنەرە پێشتر بەکارهاتووە',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     addAdmin({
-      username: newUsername,
-      password: newPassword,
+      username: newUsername.trim(),
+      password: newPassword.trim(),
       role: newRole,
     });
     
     addActivityLog({
       type: 'settings',
-      description: `زیادکردنی ئەدمینی نوێ: ${newUsername}`,
+      description: `زیادکردنی ئەدمینی نوێ: ${newUsername.trim()}`,
       user: 'ئەدمین',
     });
     
     toast({
-      title: 'زیادکرا',
-      description: 'ئەدمینی نوێ زیادکرا',
+      title: 'سەرکەوتوو بوو',
+      description: `ئەدمینی "${newUsername.trim()}" زیادکرا`,
     });
     
     setIsAdding(false);
@@ -83,22 +92,15 @@ export function AdminManagement() {
   const saveEdit = () => {
     if (!editingId) return;
     
-    const admin = admins.find((a) => a.id === editingId);
-    
     updateAdmin(editingId, {
-      username: editUsername,
-      password: editPassword,
+      username: editUsername.trim(),
+      password: editPassword.trim(),
       role: editRole,
     });
     
-    // If editing main admin, also update auth store
-    if (admin?.id === 'admin-1') {
-      updateCredentials(editUsername, editPassword);
-    }
-    
     addActivityLog({
       type: 'settings',
-      description: `نوێکردنەوەی ئەدمین: ${editUsername}`,
+      description: `نوێکردنەوەی ئەدمین: ${editUsername.trim()}`,
       user: 'ئەدمین',
     });
     
