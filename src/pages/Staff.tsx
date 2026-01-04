@@ -20,8 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase, Banknote } from 'lucide-react';
+import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase, Banknote, History } from 'lucide-react';
 import { StaffSalaryDialog } from '@/components/staff/StaffSalaryDialog';
+import { StaffSalaryHistoryDialog } from '@/components/staff/StaffSalaryHistoryDialog';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 
 export default function Staff() {
@@ -30,6 +31,7 @@ export default function Staff() {
   const [editStaff, setEditStaff] = useState<StaffType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [salaryStaff, setSalaryStaff] = useState<StaffType | null>(null);
+  const [historyStaff, setHistoryStaff] = useState<StaffType | null>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -280,18 +282,31 @@ export default function Staff() {
                         style={{ width: `${(paidMonths / 12) * 100}%` }}
                       />
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-3"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSalaryStaff(member);
-                      }}
-                    >
-                      <Banknote className="h-4 w-4 ml-2" />
-                      پارەدانی مووچە
-                    </Button>
+                    <div className="flex gap-2 mt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSalaryStaff(member);
+                        }}
+                      >
+                        <Banknote className="h-4 w-4 ml-2" />
+                        پارەدان
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHistoryStaff(member);
+                        }}
+                      >
+                        <History className="h-4 w-4 ml-1" />
+                        مێژوو
+                      </Button>
+                    </div>
                   </div>
                 </div>
               );
@@ -424,6 +439,13 @@ export default function Staff() {
           onOpenChange={(open) => !open && setSalaryStaff(null)}
         />
       )}
+
+      {/* Salary History Dialog */}
+      <StaffSalaryHistoryDialog
+        staff={historyStaff}
+        open={!!historyStaff}
+        onOpenChange={(open) => !open && setHistoryStaff(null)}
+      />
 
       {/* Password Confirmation for Delete */}
       <PasswordConfirmDialog
