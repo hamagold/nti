@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Student, Payment, formatCurrency, getDepartmentInfo } from '@/types';
+import { Staff, SalaryPayment, formatCurrency, MONTHS, DEPARTMENTS } from '@/types';
 import { Printer, Receipt, Calendar, FileText, Filter, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -10,43 +10,52 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import ntiLogo from '@/assets/nti-logo.jpg';
 
-interface PaymentHistoryDialogProps {
+interface StaffSalaryHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  student: Student | null;
+  staff: Staff | null;
 }
 
-export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHistoryDialogProps) {
-  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+export function StaffSalaryHistoryDialog({ open, onOpenChange, staff }: StaffSalaryHistoryDialogProps) {
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  if (!student) return null;
+  if (!staff) return null;
 
-  const department = getDepartmentInfo(student.department);
+  const payments = staff.salaryPayments || [];
 
   // Filter payments by date range
   const filteredPayments = useMemo(() => {
-    let payments = [...student.payments];
+    let filtered = [...payments];
     
     if (startDate) {
-      payments = payments.filter(p => new Date(p.date) >= startDate);
+      filtered = filtered.filter(p => new Date(p.date) >= startDate);
     }
     if (endDate) {
       const endOfDay = new Date(endDate);
       endOfDay.setHours(23, 59, 59, 999);
-      payments = payments.filter(p => new Date(p.date) <= endOfDay);
+      filtered = filtered.filter(p => new Date(p.date) <= endOfDay);
     }
     
-    return payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [student.payments, startDate, endDate]);
+    return filtered.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [payments, startDate, endDate]);
 
   const clearFilters = () => {
     setStartDate(undefined);
     setEndDate(undefined);
   };
 
-  const handlePrint = (payment: Payment) => {
+  const getMonthName = (monthId: number) => {
+    return MONTHS.find(m => m.id === monthId)?.name || '';
+  };
+
+  const getDepartmentName = () => {
+    if (!staff.department) return '';
+    const dept = DEPARTMENTS.find(d => d.id === staff.department);
+    return dept ? `${dept.icon} ${dept.name}` : '';
+  };
+
+  const handlePrint = (payment: SalaryPayment) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -55,7 +64,7 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
       <html dir="rtl" lang="ku">
       <head>
         <meta charset="UTF-8">
-        <title>پسوولەی پارەدان</title>
+        <title>پسوولەی مووچە</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;600;700&display=swap');
           
@@ -226,7 +235,7 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
           </div>
           
           <div class="receipt-title">
-            <span>📄 پسوولەی پارەدان</span>
+            <span>💰 پسوولەی مووچە</span>
           </div>
           
           <div class="content">
@@ -239,34 +248,31 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
               <span class="value">${new Date(payment.date).toLocaleDateString('ku-IQ')}</span>
             </div>
             <div class="info-row">
-              <span class="label">ناوی قوتابی:</span>
-              <span class="value">${student.name}</span>
+              <span class="label">ناوی ستاف:</span>
+              <span class="value">${staff.name}</span>
             </div>
             <div class="info-row">
-              <span class="label">کۆدی قوتابی:</span>
-              <span class="value">${student.code}</span>
+              <span class="label">ڕۆڵ:</span>
+              <span class="value">${staff.role === 'teacher' ? 'مامۆستا' : 'کارمەند'}</span>
             </div>
+            ${staff.department ? `
             <div class="info-row">
               <span class="label">بەش:</span>
-              <span class="value">${department.icon} ${department.name}</span>
+              <span class="value">${getDepartmentName()}</span>
+            </div>
+            ` : ''}
+            <div class="info-row">
+              <span class="label">مانگ:</span>
+              <span class="value">${getMonthName(payment.month)}</span>
             </div>
             <div class="info-row">
-              <span class="label">قۆناغ:</span>
-              <span class="value">${student.year}</span>
+              <span class="label">ساڵ:</span>
+              <span class="value">${payment.year}</span>
             </div>
             
             <div class="amount-section">
-              <div class="amount-label">بڕی پارەدان</div>
+              <div class="amount-label">بڕی مووچە</div>
               <div class="amount-value">${formatCurrency(payment.amount)}</div>
-            </div>
-            
-            <div class="info-row">
-              <span class="label">کۆی پارەی دراو:</span>
-              <span class="value">${formatCurrency(student.paidAmount)}</span>
-            </div>
-            <div class="info-row">
-              <span class="label">کۆی پارەی ماوە:</span>
-              <span class="value">${formatCurrency(student.totalFee - student.paidAmount)}</span>
             </div>
             
             ${payment.note ? `
@@ -279,7 +285,7 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
           
           <div class="footer">
             <div class="signature-line">واژووی وەرگر</div>
-            <div class="thank-you">سوپاس بۆ متمانەتان 💙</div>
+            <div class="thank-you">سوپاس بۆ هاوکاریت 💙</div>
           </div>
         </div>
         
@@ -302,20 +308,22 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-primary" />
-            مێژووی پارەدانەکان - {student.name}
+            مێژووی مووچەکان - {staff.name}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Student Summary */}
+          {/* Staff Summary */}
           <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-muted-foreground">کۆی دراو:</span>
-              <span className="font-semibold text-success">{formatCurrency(student.paidAmount)}</span>
+              <span className="text-muted-foreground">مووچەی مانگانە:</span>
+              <span className="font-semibold text-primary">{formatCurrency(staff.salary)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">کۆی ماوە:</span>
-              <span className="font-semibold text-destructive">{formatCurrency(student.totalFee - student.paidAmount)}</span>
+              <span className="text-muted-foreground">کۆی دراو:</span>
+              <span className="font-semibold text-success">
+                {formatCurrency(payments.reduce((sum, p) => sum + p.amount, 0))}
+              </span>
             </div>
           </div>
 
@@ -377,49 +385,45 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
             {filteredPayments.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>{student.payments.length === 0 ? 'هیچ پارەدانێک تۆمار نەکراوە' : 'هیچ پارەدانێک لەم ماوەیە نەدۆزرایەوە'}</p>
+                <p>{payments.length === 0 ? 'هیچ مووچەیەک تۆمار نەکراوە' : 'هیچ مووچەیەک لەم ماوەیە نەدۆزرایەوە'}</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {filteredPayments
-                  .map((payment, index) => {
-                    const paymentIndex = student.payments.findIndex(p => p.id === payment.id) + 1;
-                    return (
-                    <div
-                      key={payment.id}
-                      className="flex items-center justify-between p-3 bg-card border rounded-lg hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-semibold text-success">
-                            {formatCurrency(payment.amount)}
-                          </span>
-                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
-                            #{paymentIndex}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(payment.date).toLocaleDateString('ku-IQ')}
-                        </div>
-                        {payment.note && (
-                          <p className="text-xs text-muted-foreground mt-1 truncate max-w-[200px]">
-                            {payment.note}
-                          </p>
-                        )}
+                {filteredPayments.map((payment) => (
+                  <div
+                    key={payment.id}
+                    className="flex items-center justify-between p-3 bg-card border rounded-lg hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-success">
+                          {formatCurrency(payment.amount)}
+                        </span>
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">
+                          {getMonthName(payment.month)} {payment.year}
+                        </span>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePrint(payment)}
-                        className="shrink-0"
-                      >
-                        <Printer className="h-4 w-4 ml-1" />
-                        چاپ
-                      </Button>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(payment.date).toLocaleDateString('ku-IQ')}
+                      </div>
+                      {payment.note && (
+                        <p className="text-xs text-muted-foreground mt-1 truncate max-w-[200px]">
+                          {payment.note}
+                        </p>
+                      )}
                     </div>
-                  );
-                })}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePrint(payment)}
+                      className="shrink-0"
+                    >
+                      <Printer className="h-4 w-4 ml-1" />
+                      چاپ
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </ScrollArea>
