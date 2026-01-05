@@ -5,38 +5,27 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Lock, Mail, UserPlus, LogIn } from 'lucide-react';
+import { Lock, Mail, LogIn } from 'lucide-react';
 import ntiLogo from '@/assets/nti-logo.jpg';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login, signup } = useAuthStore();
+  const { login } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isSignup, setIsSignup] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      if (isSignup) {
-        const result = await signup(email, password);
-        if (result.success) {
-          toast.success('هەژمار دروستکرا و چوونەژوورەوە سەرکەوتوو بوو');
-          navigate('/');
-        } else {
-          toast.error(result.error || 'هەڵە لە دروستکردنی هەژمار');
-        }
+      const success = await login(email, password);
+      if (success) {
+        toast.success('چوونەژوورەوە سەرکەوتوو بوو');
+        navigate('/');
       } else {
-        const success = await login(email, password);
-        if (success) {
-          toast.success('چوونەژوورەوە سەرکەوتوو بوو');
-          navigate('/');
-        } else {
-          toast.error('ئیمەیڵ یان وشەی نهێنی هەڵەیە');
-        }
+        toast.error('ئیمەیڵ یان وشەی نهێنی هەڵەیە');
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -68,7 +57,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-foreground">
-                {isSignup ? 'دروستکردنی هەژمار' : 'چوونەژوورەوە'}
+                چوونەژوورەوە
               </h2>
               <p className="text-muted-foreground text-sm mt-1">
                 بۆ بەڕێوەبردنی سیستەم
@@ -107,11 +96,6 @@ export default function Login() {
                   minLength={6}
                   required
                 />
-                {isSignup && (
-                  <p className="text-xs text-muted-foreground">
-                    وشەی نهێنی دەبێت لانیکەم ٦ پیت بێت
-                  </p>
-                )}
               </div>
             </div>
 
@@ -127,21 +111,12 @@ export default function Login() {
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  {isSignup ? <UserPlus className="h-5 w-5" /> : <LogIn className="h-5 w-5" />}
-                  {isSignup ? 'دروستکردنی هەژمار' : 'چوونەژوورەوە'}
+                  <LogIn className="h-5 w-5" />
+                  چوونەژوورەوە
                 </span>
               )}
             </Button>
 
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => setIsSignup(!isSignup)}
-                className="text-sm text-primary hover:underline"
-              >
-                {isSignup ? 'هەژمارت هەیە؟ چوونەژوورەوە' : 'هەژمارت نیە؟ دروستکردنی هەژمار'}
-              </button>
-            </div>
 
             <p className="text-center text-xs text-muted-foreground mt-4">
               دروستکراوە بۆ قوتابی محمد سلێمان احمد
