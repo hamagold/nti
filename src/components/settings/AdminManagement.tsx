@@ -47,22 +47,32 @@ export function AdminManagement() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Fetch admins from user_roles table
+  // Fetch admins from user_roles and admin_profiles tables
   const fetchAdmins = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
         .from('user_roles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (rolesError) throw rolesError;
 
-      // For each user_role, we need to get the email from auth
-      // Since we can't access auth.users directly, we'll store email info
-      const adminList: AdminUser[] = (data || []).map(ur => ({
+      // Fetch admin profiles for emails
+      const { data: profilesData } = await supabase
+        .from('admin_profiles')
+        .select('*');
+
+      // Create a map of user_id to email
+      const emailMap = new Map<string, string>();
+      (profilesData || []).forEach((profile: any) => {
+        emailMap.set(profile.user_id, profile.email);
+      });
+
+      const adminList: AdminUser[] = (rolesData || []).map(ur => ({
         id: ur.user_id,
-        email: ur.user_id, // We'll update this with actual email if available
+        email: emailMap.get(ur.user_id) || 'ئیمەیڵ نەدۆزرایەوە',
         role: ur.role as AppRole,
         created_at: ur.created_at,
       }));
@@ -384,9 +394,12 @@ export function AdminManagement() {
                         />
                       </div>
                       <div>
-                        <p className="font-bold text-foreground text-sm" dir="ltr">{admin.id.slice(0, 8)}...</p>
+                        <p className="font-bold text-foreground text-sm" dir="ltr">{admin.email}</p>
                         <p className="text-xs text-muted-foreground">
                           {roleInfo.name} - {roleInfo.description}
+                        </p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">
+                          {new Date(admin.created_at).toLocaleDateString('ckb-IQ')}
                         </p>
                       </div>
                     </div>
