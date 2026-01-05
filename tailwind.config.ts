@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["'Noto Sans Arabic'", "sans-serif"],
+        sans: ["'Noto Kufi Arabic'", "sans-serif"],
+        rudaw: ["'Noto Kufi Arabic'", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

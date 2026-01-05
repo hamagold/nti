@@ -42,6 +42,7 @@ export default function Dashboard() {
             icon={GraduationCap}
             variant="primary"
             delay={0}
+            link="/students"
           />
           <StatCard
             title="داهاتی وەرگیراو"
@@ -51,6 +52,7 @@ export default function Dashboard() {
             variant="secondary"
             trend={{ value: 12, isPositive: true }}
             delay={100}
+            link="/payments"
           />
           <StatCard
             title="قازانجی خاوێن"
@@ -60,6 +62,7 @@ export default function Dashboard() {
             variant="accent"
             trend={{ value: netProfit > 0 ? 8 : -5, isPositive: netProfit > 0 }}
             delay={200}
+            link="/reports"
           />
           <StatCard
             title="ستاف"
@@ -68,6 +71,7 @@ export default function Dashboard() {
             icon={Users}
             variant="success"
             delay={300}
+            link="/staff"
           />
         </div>
 

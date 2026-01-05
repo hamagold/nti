@@ -2,11 +2,39 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Department, DepartmentInfo } from '@/types';
 
+export type AdminRole = 'superadmin' | 'admin' | 'staff' | 'local_staff';
+
+export type Permission = 
+  | 'view_dashboard'
+  | 'view_students'
+  | 'view_staff'
+  | 'view_payments'
+  | 'view_expenses'
+  | 'view_invoices'
+  | 'view_reports'
+  | 'view_settings'
+  | 'add_student'
+  | 'edit_student'
+  | 'delete_student'
+  | 'add_staff'
+  | 'edit_staff'
+  | 'delete_staff'
+  | 'add_payment'
+  | 'add_expense'
+  | 'edit_expense'
+  | 'delete_expense'
+  | 'add_salary'
+  | 'manage_departments'
+  | 'manage_admins'
+  | 'manage_contact'
+  | 'manage_notifications'
+  | 'view_logs';
+
 export interface Admin {
   id: string;
   username: string;
   password: string;
-  role: 'superadmin' | 'admin' | 'editor';
+  role: AdminRole;
   createdAt: string;
 }
 
@@ -19,12 +47,34 @@ export interface ContactInfo {
 
 export interface ActivityLog {
   id: string;
-  type: 'payment' | 'student_add' | 'student_delete' | 'staff_add' | 'staff_delete' | 'salary' | 'expense' | 'settings';
+  type: 'payment' | 'student_add' | 'student_delete' | 'staff_add' | 'staff_delete' | 'salary' | 'expense' | 'settings' | 'year_progress';
   description: string;
   amount?: number;
   timestamp: string;
   user: string;
 }
+
+// Default permissions for each role
+const DEFAULT_ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
+  superadmin: [
+    'view_dashboard', 'view_students', 'view_staff', 'view_payments', 'view_expenses',
+    'view_invoices', 'view_reports', 'view_settings', 'add_student', 'edit_student',
+    'delete_student', 'add_staff', 'edit_staff', 'delete_staff', 'add_payment',
+    'add_expense', 'edit_expense', 'delete_expense', 'add_salary', 'manage_departments',
+    'manage_admins', 'manage_contact', 'manage_notifications', 'view_logs',
+  ],
+  admin: [
+    'view_dashboard', 'view_students', 'view_staff', 'view_payments', 'view_expenses',
+    'view_invoices', 'view_reports', 'view_settings', 'view_logs',
+  ],
+  staff: [
+    'view_dashboard', 'view_students', 'add_student', 'edit_student', 'add_payment',
+    'view_staff', 'add_staff', 'view_payments', 'view_invoices',
+  ],
+  local_staff: [
+    'add_student', 'add_staff',
+  ],
+};
 
 interface SettingsState {
   departments: DepartmentInfo[];
@@ -32,6 +82,7 @@ interface SettingsState {
   contactInfo: ContactInfo;
   activityLog: ActivityLog[];
   notificationDays: number;
+  rolePermissions: Record<AdminRole, Permission[]>;
   
   // Actions
   updateDepartment: (id: Department, updates: Partial<DepartmentInfo>) => void;
@@ -48,6 +99,9 @@ interface SettingsState {
   clearActivityLog: () => void;
   
   setNotificationDays: (days: number) => void;
+  
+  updateRolePermissions: (role: AdminRole, permissions: Permission[]) => void;
+  getRolePermissions: (role: AdminRole) => Permission[];
 }
 
 const DEFAULT_DEPARTMENTS: DepartmentInfo[] = [
@@ -80,6 +134,7 @@ export const useSettingsStore = create<SettingsState>()(
       contactInfo: DEFAULT_CONTACT,
       activityLog: [],
       notificationDays: 50,
+      rolePermissions: DEFAULT_ROLE_PERMISSIONS,
 
       updateDepartment: (id, updates) => {
         set({
@@ -148,10 +203,26 @@ export const useSettingsStore = create<SettingsState>()(
       setNotificationDays: (days) => {
         set({ notificationDays: days });
       },
+
+      updateRolePermissions: (role, permissions) => {
+        if (role === 'superadmin') return; // Can't modify superadmin
+        set({
+          rolePermissions: {
+            ...get().rolePermissions,
+            [role]: permissions,
+          },
+        });
+      },
+
+      getRolePermissions: (role) => {
+        return get().rolePermissions[role] || DEFAULT_ROLE_PERMISSIONS[role];
+      },
     }),
     {
       name: 'settings-storage',
     }
   )
 );
+
+export { DEFAULT_ROLE_PERMISSIONS };
 

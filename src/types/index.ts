@@ -2,6 +2,13 @@ export type Department = 'computer' | 'patrol' | 'accounting' | 'administrator';
 export type Room = 'A' | 'B' | 'C';
 export type Year = 1 | 2 | 3 | 4 | 5;
 
+export interface YearPayment {
+  year: Year;
+  totalFee: number;
+  paidAmount: number;
+  isCompleted: boolean;
+}
+
 export interface Student {
   id: string;
   code: string;
@@ -11,11 +18,12 @@ export interface Student {
   photo?: string;
   department: Department;
   room: Room;
-  year: Year;
-  totalFee: number;
-  paidAmount: number;
+  year: Year; // Current active year
+  totalFee: number; // Current year fee
+  paidAmount: number; // Current year paid
   registrationDate: string;
   payments: Payment[];
+  yearPayments?: YearPayment[]; // Track all 5 years
 }
 
 // Generate student code: NTI-DEPT-YEAR-NUMBER
@@ -100,11 +108,15 @@ export const ROOMS: Room[] = ['A', 'B', 'C'];
 export const YEARS: Year[] = [1, 2, 3, 4, 5];
 
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('ar-IQ', {
+  return new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount) + ' دینار';
+};
+
+export const formatNumber = (num: number): string => {
+  return new Intl.NumberFormat('en-US').format(num);
 };
 
 export const getDepartmentInfo = (id: Department): DepartmentInfo => {

@@ -5,10 +5,10 @@ import Dashboard from './Dashboard';
 import AddStudent from './AddStudent';
 
 const Index = () => {
-  const { isEditor, canView } = usePermissions();
+  const { isLocalStaff, canView } = usePermissions();
 
-  // Editor should be redirected to add student page
-  if (isEditor) {
+  // Local staff should be redirected to add student page
+  if (isLocalStaff) {
     return (
       <MainLayout>
         <AddStudent />

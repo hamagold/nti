@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useSettingsStore } from './settingsStore';
+import { useSettingsStore, AdminRole } from './settingsStore';
 
 interface AuthState {
   isAuthenticated: boolean;
   currentUser: string | null;
-  currentRole: 'superadmin' | 'admin' | 'editor' | null;
+  currentRole: AdminRole | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
 }
