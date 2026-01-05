@@ -4,6 +4,7 @@ import { StudentForm } from '@/components/students/StudentForm';
 import { StudentCard } from '@/components/students/StudentCard';
 import { PaymentDialog } from '@/components/payments/PaymentDialog';
 import { PaymentHistoryDialog } from '@/components/students/PaymentHistoryDialog';
+import { YearProgressDialog } from '@/components/students/YearProgressDialog';
 import { useStore } from '@/store/useStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Student, DEPARTMENTS, ROOMS, YEARS, Department, Room, Year } from '@/types';
@@ -26,9 +27,11 @@ export default function Students() {
   const [formOpen, setFormOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
   const [editStudent, setEditStudent] = useState<Student | undefined>();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [historyStudent, setHistoryStudent] = useState<Student | null>(null);
+  const [progressStudent, setProgressStudent] = useState<Student | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Filters
@@ -73,6 +76,11 @@ export default function Students() {
   const handleViewHistory = (student: Student) => {
     setHistoryStudent(student);
     setHistoryOpen(true);
+  };
+
+  const handleProgressYear = (student: Student) => {
+    setProgressStudent(student);
+    setProgressOpen(true);
   };
 
   const handleDelete = () => {
@@ -191,6 +199,7 @@ export default function Students() {
                 onDelete={canDelete('student') ? (id) => setDeleteId(id) : undefined}
                 onPayment={canAdd('payment') ? handlePayment : undefined}
                 onViewHistory={handleViewHistory}
+                onProgressYear={canEdit('student') ? handleProgressYear : undefined}
                 delay={index * 50}
                 isViewOnly={isAdmin}
               />
@@ -218,6 +227,13 @@ export default function Students() {
         open={historyOpen}
         onOpenChange={setHistoryOpen}
         student={historyStudent}
+      />
+
+      {/* Year Progress Dialog */}
+      <YearProgressDialog
+        open={progressOpen}
+        onOpenChange={setProgressOpen}
+        student={progressStudent}
       />
 
       {/* Password Confirmation for Delete */}

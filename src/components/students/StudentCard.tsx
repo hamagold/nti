@@ -3,8 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Phone, MapPin, CreditCard, Trash2, Edit, User, History, ArrowUp } from 'lucide-react';
-import { useStore } from '@/store/useStore';
-import { toast } from 'sonner';
 
 interface StudentCardProps {
   student: Student;
@@ -12,6 +10,7 @@ interface StudentCardProps {
   onDelete?: (id: string) => void;
   onPayment?: (student: Student) => void;
   onViewHistory?: (student: Student) => void;
+  onProgressYear?: (student: Student) => void;
   delay?: number;
   isViewOnly?: boolean;
 }
@@ -22,23 +21,14 @@ export function StudentCard({
   onDelete,
   onPayment,
   onViewHistory,
+  onProgressYear,
   delay = 0,
   isViewOnly = false,
 }: StudentCardProps) {
-  const { progressToNextYear } = useStore();
   const department = getDepartmentInfo(student.department);
   const remainingAmount = student.totalFee - student.paidAmount;
   const paidPercentage = (student.paidAmount / student.totalFee) * 100;
   const canProgress = student.paidAmount >= student.totalFee && student.year < 5;
-
-  const handleProgressYear = () => {
-    const success = progressToNextYear(student.id);
-    if (success) {
-      toast.success(`قوتابی ${student.name} پەڕییەوە بۆ ساڵی ${student.year + 1}`);
-    } else {
-      toast.error('نەتوانرا پەڕینەوە ئەنجام بدرێت');
-    }
-  };
 
   return (
     <div
@@ -123,12 +113,12 @@ export function StudentCard({
 
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
-        {canProgress && !isViewOnly && (
+        {canProgress && !isViewOnly && onProgressYear && (
           <Button
             variant="default"
             size="sm"
             className="flex-1 bg-success hover:bg-success/90"
-            onClick={handleProgressYear}
+            onClick={() => onProgressYear(student)}
           >
             <ArrowUp className="h-4 w-4 ml-1" />
             پەڕینەوە بۆ ساڵی {student.year + 1}

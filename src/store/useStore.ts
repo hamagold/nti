@@ -13,7 +13,7 @@ interface AppState {
   updateStudent: (id: string, student: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
   addPayment: (studentId: string, payment: Payment) => void;
-  progressToNextYear: (studentId: string) => boolean;
+  progressToNextYear: (studentId: string, newFee?: number) => boolean;
   
   // Staff actions
   addStaff: (staff: Staff) => void;
@@ -87,7 +87,7 @@ export const useStore = create<AppState>()(
           }),
         })),
 
-      progressToNextYear: (studentId) => {
+      progressToNextYear: (studentId, customFee) => {
         const student = get().students.find(s => s.id === studentId);
         if (!student) return false;
         
@@ -99,7 +99,8 @@ export const useStore = create<AppState>()(
         
         const { departments } = useSettingsStore.getState();
         const dept = departments.find(d => d.id === student.department);
-        const nextYearFee = dept?.yearlyFee || student.totalFee;
+        // Use custom fee if provided, otherwise use department fee or current fee
+        const nextYearFee = customFee ?? dept?.yearlyFee ?? student.totalFee;
         const nextYear = (student.year + 1) as Year;
         
         set((state) => ({

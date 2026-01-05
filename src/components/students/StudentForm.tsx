@@ -31,7 +31,7 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
   const { students, addStudent, updateStudent } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [formData, setFormData] = useState({
+  const getInitialFormData = () => ({
     name: editStudent?.name || '',
     phone: editStudent?.phone || '',
     address: editStudent?.address || '',
@@ -41,6 +41,25 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
     year: editStudent?.year?.toString() || '',
     totalFee: editStudent?.totalFee?.toString() || '',
   });
+  
+  const [formData, setFormData] = useState(getInitialFormData());
+  
+  // Update form data when editStudent changes
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isOpen) {
+      setFormData({
+        name: editStudent?.name || '',
+        phone: editStudent?.phone || '',
+        address: editStudent?.address || '',
+        photo: editStudent?.photo || '',
+        department: editStudent?.department || '' as Department,
+        room: editStudent?.room || '' as Room,
+        year: editStudent?.year?.toString() || '',
+        totalFee: editStudent?.totalFee?.toString() || '',
+      });
+    }
+    onOpenChange(isOpen);
+  };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -96,21 +115,11 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
       onSuccess?.();
     }
     
-    onOpenChange(false);
-    setFormData({
-      name: '',
-      phone: '',
-      address: '',
-      photo: '',
-      department: '' as Department,
-      room: '' as Room,
-      year: '',
-      totalFee: '',
-    });
+    handleOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
