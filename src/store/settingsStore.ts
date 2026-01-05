@@ -6,7 +6,7 @@ export interface Admin {
   id: string;
   username: string;
   password: string;
-  role: 'admin' | 'manager' | 'viewer';
+  role: 'superadmin' | 'admin' | 'editor';
   createdAt: string;
 }
 
@@ -61,7 +61,7 @@ const DEFAULT_ADMIN: Admin = {
   id: 'admin-1',
   username: 'adminNTI',
   password: 'kurdistan',
-  role: 'admin',
+  role: 'superadmin',
   createdAt: new Date().toISOString(),
 };
 

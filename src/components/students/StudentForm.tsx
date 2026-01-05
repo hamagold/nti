@@ -24,9 +24,10 @@ interface StudentFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editStudent?: Student;
+  onSuccess?: () => void;
 }
 
-export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProps) {
+export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: StudentFormProps) {
   const { students, addStudent, updateStudent } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -92,6 +93,7 @@ export function StudentForm({ open, onOpenChange, editStudent }: StudentFormProp
       };
       addStudent(newStudent);
       toast.success('قوتابی بە سەرکەوتوویی تۆمار کرا');
+      onSuccess?.();
     }
     
     onOpenChange(false);

@@ -6,11 +6,12 @@ import { Phone, MapPin, CreditCard, Trash2, Edit, User, History } from 'lucide-r
 
 interface StudentCardProps {
   student: Student;
-  onEdit: (student: Student) => void;
-  onDelete: (id: string) => void;
-  onPayment: (student: Student) => void;
+  onEdit?: (student: Student) => void;
+  onDelete?: (id: string) => void;
+  onPayment?: (student: Student) => void;
   onViewHistory?: (student: Student) => void;
   delay?: number;
+  isViewOnly?: boolean;
 }
 
 export function StudentCard({
@@ -20,6 +21,7 @@ export function StudentCard({
   onPayment,
   onViewHistory,
   delay = 0,
+  isViewOnly = false,
 }: StudentCardProps) {
   const department = getDepartmentInfo(student.department);
   const remainingAmount = student.totalFee - student.paidAmount;
@@ -105,15 +107,17 @@ export function StudentCard({
 
       {/* Actions */}
       <div className="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => onPayment(student)}
-        >
-          <CreditCard className="h-4 w-4 ml-1" />
-          پارەدان
-        </Button>
+        {onPayment && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            onClick={() => onPayment(student)}
+          >
+            <CreditCard className="h-4 w-4 ml-1" />
+            پارەدان
+          </Button>
+        )}
         {onViewHistory && (
           <Button
             variant="ghost"
@@ -125,22 +129,26 @@ export function StudentCard({
             <History className="h-4 w-4" />
           </Button>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => onEdit(student)}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-          onClick={() => onDelete(student.id)}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {onEdit && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={() => onEdit(student)}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+        )}
+        {onDelete && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+            onClick={() => onDelete(student.id)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
     </div>
   );

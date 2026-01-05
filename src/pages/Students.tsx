@@ -5,6 +5,7 @@ import { StudentCard } from '@/components/students/StudentCard';
 import { PaymentDialog } from '@/components/payments/PaymentDialog';
 import { PaymentHistoryDialog } from '@/components/students/PaymentHistoryDialog';
 import { useStore } from '@/store/useStore';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Student, DEPARTMENTS, ROOMS, YEARS, Department, Room, Year } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { Plus, Search, GraduationCap } from 'lucide-react';
 
 export default function Students() {
   const { students, deleteStudent } = useStore();
+  const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
   const [formOpen, setFormOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -138,16 +140,18 @@ export default function Students() {
             </Select>
           </div>
 
-          <Button
-            onClick={() => {
-              setEditStudent(undefined);
-              setFormOpen(true);
-            }}
-            className="gradient-primary text-primary-foreground shrink-0"
-          >
-            <Plus className="h-5 w-5 ml-2" />
-            قوتابی نوێ
-          </Button>
+          {canAdd('student') && (
+            <Button
+              onClick={() => {
+                setEditStudent(undefined);
+                setFormOpen(true);
+              }}
+              className="gradient-primary text-primary-foreground shrink-0"
+            >
+              <Plus className="h-5 w-5 ml-2" />
+              قوتابی نوێ
+            </Button>
+          )}
         </div>
 
         {/* Students Grid */}
@@ -163,11 +167,12 @@ export default function Students() {
               <StudentCard
                 key={student.id}
                 student={student}
-                onEdit={handleEdit}
-                onDelete={(id) => setDeleteId(id)}
-                onPayment={handlePayment}
+                onEdit={canEdit('student') ? handleEdit : undefined}
+                onDelete={canDelete('student') ? (id) => setDeleteId(id) : undefined}
+                onPayment={canAdd('payment') ? handlePayment : undefined}
                 onViewHistory={handleViewHistory}
                 delay={index * 50}
+                isViewOnly={isAdmin}
               />
             ))}
           </div>

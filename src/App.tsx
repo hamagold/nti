@@ -14,6 +14,8 @@ import Staff from "./pages/Staff";
 import Expenses from "./pages/Expenses";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
+import AddStudent from "./pages/AddStudent";
+import AddStaff from "./pages/AddStaff";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,6 +99,26 @@ const App = () => (
               <ProtectedRoute>
                 <MainLayout>
                   <Settings />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/students/add"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AddStudent />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/staff/add"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <AddStaff />
                 </MainLayout>
               </ProtectedRoute>
             }

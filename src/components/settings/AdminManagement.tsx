@@ -17,9 +17,9 @@ import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog
 import { cn } from '@/lib/utils';
 
 const ROLES = [
-  { id: 'admin', name: 'ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو' },
-  { id: 'manager', name: 'بەڕێوەبەر', icon: User, description: 'بەڕێوەبردنی قوتابی و ستاف' },
-  { id: 'viewer', name: 'بینەر', icon: Eye, description: 'تەنها بینین' },
+  { id: 'superadmin', name: 'سوپەر ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو' },
+  { id: 'admin', name: 'ئەدمین', icon: Eye, description: 'تەنها بینینی داتا' },
+  { id: 'editor', name: 'ئیدیتۆر', icon: User, description: 'تەنها تۆمارکردنی قوتابی و مامۆستا' },
 ] as const;
 
 export function AdminManagement() {
@@ -29,12 +29,12 @@ export function AdminManagement() {
   const [isAdding, setIsAdding] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'admin' | 'manager' | 'viewer'>('viewer');
+  const [newRole, setNewRole] = useState<'superadmin' | 'admin' | 'editor'>('editor');
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<'admin' | 'manager' | 'viewer'>('viewer');
+  const [editRole, setEditRole] = useState<'superadmin' | 'admin' | 'editor'>('editor');
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export function AdminManagement() {
     setIsAdding(false);
     setNewUsername('');
     setNewPassword('');
-    setNewRole('viewer');
+    setNewRole('editor');
   };
 
   const startEdit = (admin: Admin) => {
@@ -224,7 +224,7 @@ export function AdminManagement() {
               key={admin.id}
               className={cn(
                 'p-4 rounded-xl border transition-colors',
-                admin.role === 'admin'
+                admin.role === 'superadmin'
                   ? 'bg-primary/5 border-primary/20'
                   : 'bg-muted/50 border-border'
               )}
@@ -291,9 +291,9 @@ export function AdminManagement() {
                     <div
                       className={cn(
                         'h-10 w-10 rounded-full flex items-center justify-center',
-                        admin.role === 'admin'
+                        admin.role === 'superadmin'
                           ? 'gradient-primary'
-                          : admin.role === 'manager'
+                          : admin.role === 'editor'
                           ? 'gradient-secondary'
                           : 'bg-muted'
                       )}
@@ -301,7 +301,7 @@ export function AdminManagement() {
                       <RoleIcon
                         className={cn(
                           'h-5 w-5',
-                          admin.role === 'viewer'
+                          admin.role === 'admin'
                             ? 'text-muted-foreground'
                             : 'text-primary-foreground'
                         )}
