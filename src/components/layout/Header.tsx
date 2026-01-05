@@ -14,13 +14,23 @@ interface HeaderProps {
 }
 
 export function Header({ title, subtitle }: HeaderProps) {
-  const { logout } = useAuthStore();
+  const { logout, currentUser, currentRole } = useAuthStore();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const getRoleName = () => {
+    switch (currentRole) {
+      case 'superadmin': return 'سوپەر ئەدمین';
+      case 'admin': return 'ئەدمین';
+      case 'staff': return 'ستاف';
+      case 'local_staff': return 'ستافی ناوخۆ';
+      default: return 'بەکارهێنەر';
+    }
   };
 
   return (
@@ -83,8 +93,8 @@ export function Header({ title, subtitle }: HeaderProps) {
             <User className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="hidden md:block text-right">
-            <p className="text-sm font-semibold">ئەدمین</p>
-            <p className="text-xs text-muted-foreground">بەڕێوەبەر</p>
+            <p className="text-sm font-semibold" dir="ltr">{currentUser || 'ئەدمین'}</p>
+            <p className="text-xs text-muted-foreground">{getRoleName()}</p>
           </div>
         </div>
 

@@ -11,9 +11,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Lock, AlertTriangle } from 'lucide-react';
+import { Lock, AlertTriangle, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
-import { useSettingsStore } from '@/store/settingsStore';
+import { supabase } from '@/integrations/supabase/client';
 
 interface PasswordConfirmDialogProps {
   open: boolean;
@@ -31,19 +31,40 @@ export function PasswordConfirmDialog({
   description = 'تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون',
 }: PasswordConfirmDialogProps) {
   const [password, setPassword] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
   const { currentUser } = useAuthStore();
-  const { admins } = useSettingsStore();
 
-  const handleConfirm = () => {
-    // Find current logged in admin and verify their password
-    const currentAdmin = admins.find(a => a.username === currentUser);
-    
-    if (currentAdmin && password === currentAdmin.password) {
+  const handleConfirm = async () => {
+    if (!password.trim()) {
+      toast.error('تکایە پاسۆرد بنوسە');
+      return;
+    }
+
+    if (!currentUser) {
+      toast.error('چوونەژورەوە نەکراوە');
+      return;
+    }
+
+    setIsVerifying(true);
+    try {
+      // Verify password by attempting to sign in with current credentials
+      const { error } = await supabase.auth.signInWithPassword({
+        email: currentUser,
+        password: password,
+      });
+
+      if (error) {
+        toast.error('پاسۆرد هەڵەیە');
+        return;
+      }
+
       onConfirm();
       setPassword('');
       onOpenChange(false);
-    } else {
-      toast.error('پاسۆرد هەڵەیە');
+    } catch (error) {
+      toast.error('هەڵە لە پشتڕاستکردنەوە');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -95,8 +116,12 @@ export function PasswordConfirmDialog({
           </Button>
           <Button
             onClick={handleConfirm}
+            disabled={isVerifying}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
+            {isVerifying ? (
+              <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+            ) : null}
             دڵنیام سڕینەوە
           </Button>
         </AlertDialogFooter>

@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Shield, Eye, UserPlus, Save, RotateCcw } from 'lucide-react';
+import { Shield, Eye, UserPlus, Save, RotateCcw, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
 export type Permission = 
@@ -125,12 +126,19 @@ const DEFAULT_ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
 
 export function RolePermissions() {
   const { rolePermissions, updateRolePermissions, addActivityLog } = useSettingsStore();
+  const { currentRole: userRole } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<AdminRole>('staff');
+  
+  const isSuperAdminUser = userRole === 'superadmin';
   
   // Use stored permissions or defaults
   const currentPermissions = rolePermissions?.[selectedRole] || DEFAULT_ROLE_PERMISSIONS[selectedRole];
   
   const handleTogglePermission = (permission: Permission) => {
+    if (!isSuperAdminUser) {
+      toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
+      return;
+    }
     const newPermissions = currentPermissions.includes(permission)
       ? currentPermissions.filter(p => p !== permission)
       : [...currentPermissions, permission];
@@ -139,6 +147,10 @@ export function RolePermissions() {
   };
 
   const handleResetToDefault = () => {
+    if (!isSuperAdminUser) {
+      toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
+      return;
+    }
     updateRolePermissions(selectedRole, DEFAULT_ROLE_PERMISSIONS[selectedRole]);
     addActivityLog({
       type: 'settings',
@@ -186,6 +198,16 @@ export function RolePermissions() {
         </p>
       </div>
 
+      {/* Non-superadmin warning */}
+      {!isSuperAdminUser && (
+        <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3">
+          <Lock className="h-5 w-5 text-destructive" />
+          <p className="text-sm text-destructive">
+            تەنها سوپەر ئەدمین دەتوانێت دەسەڵاتەکان بگۆڕێت
+          </p>
+        </div>
+      )}
+
       {/* Permissions Grid */}
       {isSuperAdmin ? (
         <div className="p-6 rounded-xl bg-primary/5 border border-primary/20 text-center">
@@ -204,15 +226,16 @@ export function RolePermissions() {
                 {category.permissions.map((permission) => (
                   <div
                     key={permission}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
+                    className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser ? 'hover:bg-muted/50' : 'opacity-60'}`}
                   >
-                    <Label htmlFor={permission} className="cursor-pointer text-sm">
+                    <Label htmlFor={permission} className={`text-sm ${isSuperAdminUser ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
                       {PERMISSION_LABELS[permission]}
                     </Label>
                     <Switch
                       id={permission}
                       checked={currentPermissions.includes(permission)}
                       onCheckedChange={() => handleTogglePermission(permission)}
+                      disabled={!isSuperAdminUser}
                     />
                   </div>
                 ))}
@@ -221,12 +244,14 @@ export function RolePermissions() {
           ))}
 
           {/* Actions */}
-          <div className="flex gap-2 justify-end pt-4 border-t border-border">
-            <Button variant="outline" onClick={handleResetToDefault}>
-              <RotateCcw className="h-4 w-4 ml-2" />
-              گەڕانەوە بۆ بنچینەیی
-            </Button>
-          </div>
+          {isSuperAdminUser && (
+            <div className="flex gap-2 justify-end pt-4 border-t border-border">
+              <Button variant="outline" onClick={handleResetToDefault}>
+                <RotateCcw className="h-4 w-4 ml-2" />
+                گەڕانەوە بۆ بنچینەیی
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
