@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Staff as StaffType, formatCurrency, DEPARTMENTS, Department, MONTHS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog
 
 export default function Staff() {
   const { staff, addStaff, updateStaff, deleteStaff } = useStore();
+  const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
   const [formOpen, setFormOpen] = useState(false);
   const [editStaff, setEditStaff] = useState<StaffType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -180,18 +182,20 @@ export default function Staff() {
         </div>
 
         {/* Add Button */}
-        <div className="flex justify-end mb-6">
-          <Button
-            onClick={() => {
-              resetForm();
-              setFormOpen(true);
-            }}
-            className="gradient-primary text-primary-foreground"
-          >
-            <Plus className="h-5 w-5 ml-2" />
-            ستافی نوێ
-          </Button>
-        </div>
+        {canAdd('staff') && (
+          <div className="flex justify-end mb-6">
+            <Button
+              onClick={() => {
+                resetForm();
+                setFormOpen(true);
+              }}
+              className="gradient-primary text-primary-foreground"
+            >
+              <Plus className="h-5 w-5 ml-2" />
+              ستافی نوێ
+            </Button>
+          </div>
+        )}
 
         {/* Staff Grid */}
         {staff.length === 0 ? (
@@ -227,24 +231,30 @@ export default function Staff() {
                         </Badge>
                       </div>
                     </div>
-                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleEdit(member)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={() => setDeleteId(member.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {!isAdmin && (
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        {canEdit('staff') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleEdit(member)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {canDelete('staff') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteId(member.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2 text-sm">
@@ -283,18 +293,20 @@ export default function Staff() {
                       />
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSalaryStaff(member);
-                        }}
-                      >
-                        <Banknote className="h-4 w-4 ml-2" />
-                        پارەدان
-                      </Button>
+                      {canAdd('salary') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSalaryStaff(member);
+                          }}
+                        >
+                          <Banknote className="h-4 w-4 ml-2" />
+                          پارەدان
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

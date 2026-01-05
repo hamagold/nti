@@ -5,7 +5,7 @@ import { useSettingsStore } from './settingsStore';
 interface AuthState {
   isAuthenticated: boolean;
   currentUser: string | null;
-  currentRole: 'admin' | 'manager' | 'viewer' | null;
+  currentRole: 'superadmin' | 'admin' | 'editor' | null;
   login: (username: string, password: string) => boolean;
   logout: () => void;
 }

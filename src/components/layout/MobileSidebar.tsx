@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { usePermissions } from '@/hooks/usePermissions';
 import {
   LayoutDashboard,
   Users,
@@ -9,22 +10,36 @@ import {
   Settings,
   Building2,
   Receipt,
+  UserPlus,
 } from 'lucide-react';
 import { SheetClose } from '@/components/ui/sheet';
 
-const menuItems = [
-  { icon: LayoutDashboard, label: 'داشبۆرد', path: '/' },
-  { icon: GraduationCap, label: 'قوتابیان', path: '/students' },
-  { icon: CreditCard, label: 'پارەدان', path: '/payments' },
-  { icon: Receipt, label: 'پسولەکان', path: '/invoices' },
-  { icon: Users, label: 'ستاف', path: '/staff' },
-  { icon: Building2, label: 'خەرجیەکان', path: '/expenses' },
-  { icon: FileText, label: 'ڕاپۆرتەکان', path: '/reports' },
-  { icon: Settings, label: 'ڕێکخستنەکان', path: '/settings' },
+const allMenuItems = [
+  { icon: LayoutDashboard, label: 'داشبۆرد', path: '/', permission: 'view_dashboard' as const },
+  { icon: GraduationCap, label: 'قوتابیان', path: '/students', permission: 'view_students' as const },
+  { icon: CreditCard, label: 'پارەدان', path: '/payments', permission: 'view_payments' as const },
+  { icon: Receipt, label: 'پسولەکان', path: '/invoices', permission: 'view_invoices' as const },
+  { icon: Users, label: 'ستاف', path: '/staff', permission: 'view_staff' as const },
+  { icon: Building2, label: 'خەرجیەکان', path: '/expenses', permission: 'view_expenses' as const },
+  { icon: FileText, label: 'ڕاپۆرتەکان', path: '/reports', permission: 'view_reports' as const },
+  { icon: Settings, label: 'ڕێکخستنەکان', path: '/settings', permission: 'view_settings' as const },
+];
+
+// Editor menu - only add student/staff
+const editorMenuItems = [
+  { icon: UserPlus, label: 'تۆمارکردنی قوتابی', path: '/students/add', permission: 'add_student' as const },
+  { icon: Users, label: 'تۆمارکردنی ستاف', path: '/staff/add', permission: 'add_staff' as const },
 ];
 
 export function MobileSidebar() {
   const location = useLocation();
+  const { hasPermission, isEditor } = usePermissions();
+
+  // For editor, show only add student/staff pages
+  // For others, show menu items based on permissions
+  const menuItems = isEditor
+    ? editorMenuItems
+    : allMenuItems.filter(item => hasPermission(item.permission));
 
   return (
     <div className="h-full bg-sidebar flex flex-col">

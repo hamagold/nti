@@ -21,12 +21,11 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
 
-  if (!student) return null;
-
-  const department = getDepartmentInfo(student.department);
+  const department = student ? getDepartmentInfo(student.department) : null;
 
   // Filter payments by date range
   const filteredPayments = useMemo(() => {
+    if (!student) return [];
     let payments = [...student.payments];
     
     if (startDate) {
@@ -39,7 +38,9 @@ export function PaymentHistoryDialog({ open, onOpenChange, student }: PaymentHis
     }
     
     return payments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [student.payments, startDate, endDate]);
+  }, [student?.payments, startDate, endDate]);
+
+  if (!student || !department) return null;
 
   const clearFilters = () => {
     setStartDate(undefined);
