@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuthStore } from "@/store/authStore";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import Students from "./pages/Students";
@@ -21,9 +22,15 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Initialize dark mode on first load
-function ThemeInitializer() {
+// Initialize dark mode and auth on first load
+function AppInitializer() {
+  const { initialize } = useAuthStore();
+  
   useEffect(() => {
+    // Initialize auth
+    initialize();
+    
+    // Initialize theme
     const stored = localStorage.getItem('theme');
     const root = document.documentElement;
     
@@ -37,14 +44,14 @@ function ThemeInitializer() {
       root.classList.add('light');
       root.classList.remove('dark');
     }
-  }, []);
+  }, [initialize]);
   
   return null;
 }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeInitializer />
+    <AppInitializer />
     <TooltipProvider>
       <Toaster />
       <Sonner />
