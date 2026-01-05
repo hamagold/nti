@@ -10,6 +10,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { Student, DEPARTMENTS, ROOMS, YEARS, Department, Room, Year } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
   SelectContent,
@@ -19,10 +20,10 @@ import {
 } from '@/components/ui/select';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 import { toast } from 'sonner';
-import { Plus, Search, GraduationCap } from 'lucide-react';
+import { Plus, Search, GraduationCap, Loader2 } from 'lucide-react';
 
 export default function Students() {
-  const { students, deleteStudent } = useStore();
+  const { students, deleteStudent, studentsLoading } = useStore();
   const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
   const [formOpen, setFormOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
@@ -183,7 +184,12 @@ export default function Students() {
         </div>
 
         {/* Students Grid */}
-        {filteredStudents.length === 0 ? (
+        {studentsLoading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">بارکردنی قوتابیان...</p>
+          </div>
+        ) : filteredStudents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <GraduationCap className="h-16 w-16 mb-4 opacity-50" />
             <p className="text-lg font-medium">هیچ قوتابیەک نەدۆزرایەوە</p>

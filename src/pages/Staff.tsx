@@ -21,13 +21,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase, Banknote, History } from 'lucide-react';
+import { Plus, Users, Trash2, Edit, GraduationCap, Briefcase, Banknote, History, Loader2 } from 'lucide-react';
 import { StaffSalaryDialog } from '@/components/staff/StaffSalaryDialog';
 import { StaffSalaryHistoryDialog } from '@/components/staff/StaffSalaryHistoryDialog';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 
 export default function Staff() {
-  const { staff, addStaff, updateStaff, deleteStaff } = useStore();
+  const { staff, addStaff, updateStaff, deleteStaff, staffLoading } = useStore();
   const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
   const [formOpen, setFormOpen] = useState(false);
   const [editStaff, setEditStaff] = useState<StaffType | null>(null);
@@ -198,7 +198,12 @@ export default function Staff() {
         )}
 
         {/* Staff Grid */}
-        {staff.length === 0 ? (
+        {staffLoading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">بارکردنی ستاف...</p>
+          </div>
+        ) : staff.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Users className="h-16 w-16 mb-4 opacity-50" />
             <p className="text-lg font-medium">هیچ ستافێک تۆمار نەکراوە</p>

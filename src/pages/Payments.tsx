@@ -15,10 +15,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Search, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
+import { Search, CreditCard, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
 export default function Payments() {
-  const { students } = useStore();
+  const { students, studentsLoading } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -41,6 +41,21 @@ export default function Payments() {
     setSelectedStudent(student);
     setPaymentOpen(true);
   };
+
+  if (studentsLoading) {
+    return (
+      <div className="min-h-screen pb-8">
+        <Header
+          title="پارەدان"
+          subtitle="بەڕێوەبردنی پارەدان و قەرزەکان"
+        />
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">بارکردنی داتا...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8">

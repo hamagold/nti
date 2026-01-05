@@ -10,10 +10,11 @@ import {
   TrendingUp,
   Users,
   Calendar,
+  Loader2,
 } from 'lucide-react';
 
 export default function Dashboard() {
-  const { students, staff, expenses } = useStore();
+  const { students, staff, expenses, isLoading } = useStore();
 
   // Calculate statistics
   const totalStudents = students.length;
@@ -24,6 +25,21 @@ export default function Dashboard() {
   const netProfit = totalIncome - totalExpenses - totalSalaries;
 
   const currentYear = new Date().getFullYear();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen pb-8">
+        <Header
+          title="داشبۆرد"
+          subtitle={`ساڵی ${currentYear} - پەیمانگای تەکنیکی نیشتمانی`}
+        />
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">بارکردنی داتا...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8">

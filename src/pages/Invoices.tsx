@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Search, Receipt, FileText, Eye } from 'lucide-react';
+import { Search, Receipt, FileText, Eye, Loader2 } from 'lucide-react';
 import { InvoiceViewDialog } from '@/components/invoices/InvoiceViewDialog';
 
 interface PaymentWithStudent {
@@ -33,7 +33,7 @@ interface PaymentWithStudent {
 }
 
 export default function Invoices() {
-  const { students } = useStore();
+  const { students, studentsLoading } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<PaymentWithStudent | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
@@ -64,6 +64,21 @@ export default function Invoices() {
     setSelectedPayment(payment);
     setViewOpen(true);
   };
+
+  if (studentsLoading) {
+    return (
+      <div className="min-h-screen pb-8">
+        <Header
+          title="پسولەکان"
+          subtitle="هەموو پسولەکانی پارەدان"
+        />
+        <div className="flex flex-col items-center justify-center py-32">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-muted-foreground">بارکردنی داتا...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-8">
