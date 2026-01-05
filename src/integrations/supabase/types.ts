@@ -14,7 +14,234 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          type: Database["public"]["Enums"]["expense_type"]
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          type: Database["public"]["Enums"]["expense_type"]
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          type?: Database["public"]["Enums"]["expense_type"]
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          note: string | null
+          student_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          student_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          note?: string | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      salary_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          month: number
+          note: string | null
+          staff_id: string
+          year: number
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          month: number
+          note?: string | null
+          staff_id: string
+          year: number
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          month?: number
+          note?: string | null
+          staff_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_payments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      staff: {
+        Row: {
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"] | null
+          id: string
+          join_date: string
+          name: string
+          phone: string
+          role: Database["public"]["Enums"]["staff_role_type"]
+          salary: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"] | null
+          id?: string
+          join_date?: string
+          name: string
+          phone: string
+          role: Database["public"]["Enums"]["staff_role_type"]
+          salary?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"] | null
+          id?: string
+          join_date?: string
+          name?: string
+          phone?: string
+          role?: Database["public"]["Enums"]["staff_role_type"]
+          salary?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      students: {
+        Row: {
+          address: string | null
+          code: string
+          created_at: string
+          department: Database["public"]["Enums"]["department_type"]
+          id: string
+          name: string
+          paid_amount: number
+          phone: string
+          photo_url: string | null
+          registration_date: string
+          room: Database["public"]["Enums"]["room_type"]
+          total_fee: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          address?: string | null
+          code: string
+          created_at?: string
+          department: Database["public"]["Enums"]["department_type"]
+          id?: string
+          name: string
+          paid_amount?: number
+          phone: string
+          photo_url?: string | null
+          registration_date?: string
+          room: Database["public"]["Enums"]["room_type"]
+          total_fee?: number
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          address?: string | null
+          code?: string
+          created_at?: string
+          department?: Database["public"]["Enums"]["department_type"]
+          id?: string
+          name?: string
+          paid_amount?: number
+          phone?: string
+          photo_url?: string | null
+          registration_date?: string
+          room?: Database["public"]["Enums"]["room_type"]
+          total_fee?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
+      year_payments: {
+        Row: {
+          created_at: string
+          id: string
+          is_completed: boolean
+          paid_amount: number
+          student_id: string
+          total_fee: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          paid_amount?: number
+          student_id: string
+          total_fee?: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          paid_amount?: number
+          student_id?: string
+          total_fee?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "year_payments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +250,10 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      department_type: "computer" | "patrol" | "accounting" | "administrator"
+      expense_type: "electricity" | "water" | "other"
+      room_type: "A" | "B" | "C"
+      staff_role_type: "teacher" | "employee"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +380,11 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      department_type: ["computer", "patrol", "accounting", "administrator"],
+      expense_type: ["electricity", "water", "other"],
+      room_type: ["A", "B", "C"],
+      staff_role_type: ["teacher", "employee"],
+    },
   },
 } as const
