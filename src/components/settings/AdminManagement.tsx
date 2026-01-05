@@ -15,7 +15,7 @@ import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 
-type AppRole = 'superadmin' | 'admin' | 'user';
+type AppRole = 'superadmin' | 'admin' | 'staff' | 'local_staff';
 
 interface AdminUser {
   id: string;
@@ -27,7 +27,8 @@ interface AdminUser {
 const ROLES: { id: AppRole; name: string; icon: typeof Shield; description: string }[] = [
   { id: 'superadmin', name: 'سوپەر ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو' },
   { id: 'admin', name: 'ئەدمین', icon: Eye, description: 'بینینی داتا' },
-  { id: 'user', name: 'بەکارهێنەر', icon: UserPlus, description: 'دەسەڵاتی سنووردار' },
+  { id: 'staff', name: 'ستاف', icon: UserPlus, description: 'کارمەندی ناوخۆ' },
+  { id: 'local_staff', name: 'ستافی ناوخۆ', icon: UserPlus, description: 'تەنها تۆمارکردن' },
 ];
 
 export function AdminManagement() {
@@ -39,10 +40,10 @@ export function AdminManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<AppRole>('user');
+  const [newRole, setNewRole] = useState<AppRole>('staff');
   
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editRole, setEditRole] = useState<AppRole>('user');
+  const [editRole, setEditRole] = useState<AppRole>('staff');
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -134,7 +135,7 @@ export function AdminManagement() {
       setIsAdding(false);
       setNewEmail('');
       setNewPassword('');
-      setNewRole('user');
+      setNewRole('staff');
       fetchAdmins();
     } catch (error: any) {
       console.error('Error creating admin:', error);
@@ -219,7 +220,7 @@ export function AdminManagement() {
   };
 
   const getRoleInfo = (role: string) => {
-    return ROLES.find((r) => r.id === role) || ROLES[2];
+    return ROLES.find((r) => r.id === role) || ROLES[2]; // Default to staff
   };
 
   if (isLoading) {
@@ -387,7 +388,7 @@ export function AdminManagement() {
                         <RoleIcon
                           className={cn(
                             'h-5 w-5',
-                            admin.role === 'user'
+                            admin.role === 'local_staff'
                               ? 'text-muted-foreground'
                               : 'text-primary-foreground'
                           )}

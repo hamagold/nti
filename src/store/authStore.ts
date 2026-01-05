@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSettingsStore, AdminRole } from './settingsStore';
 import { User, Session } from '@supabase/supabase-js';
 
-type AppRole = 'superadmin' | 'admin' | 'user';
+type AppRole = 'superadmin' | 'admin' | 'user' | 'staff' | 'local_staff';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -64,10 +64,16 @@ export const useAuthStore = create<AuthState>()(
         
         if (data.user && data.session) {
           const role = await get().fetchUserRole(data.user.id);
+          // Map app role to AdminRole
+          const adminRole = role === 'superadmin' ? 'superadmin' 
+            : role === 'admin' ? 'admin' 
+            : role === 'staff' ? 'staff'
+            : role === 'local_staff' ? 'local_staff'
+            : 'staff';
           set({ 
             isAuthenticated: true, 
             currentUser: data.user.email,
-            currentRole: 'superadmin',
+            currentRole: adminRole as AdminRole,
             appRole: role || 'user',
             supabaseUser: data.user,
             session: data.session,
@@ -118,10 +124,16 @@ export const useAuthStore = create<AuthState>()(
       setSession: async (session: Session | null) => {
         if (session) {
           const role = await get().fetchUserRole(session.user.id);
+          // Map app role to AdminRole
+          const adminRole = role === 'superadmin' ? 'superadmin' 
+            : role === 'admin' ? 'admin' 
+            : role === 'staff' ? 'staff'
+            : role === 'local_staff' ? 'local_staff'
+            : 'staff';
           set({
             isAuthenticated: true,
             currentUser: session.user.email,
-            currentRole: 'superadmin',
+            currentRole: adminRole as AdminRole,
             appRole: role || 'user',
             supabaseUser: session.user,
             session,
