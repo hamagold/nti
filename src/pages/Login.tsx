@@ -7,18 +7,17 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Lock, Mail, LogIn } from 'lucide-react';
 import ntiLogo from '@/assets/nti-logo.jpg';
-
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const {
+    login
+  } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
     try {
       const success = await login(email, password);
       if (success) {
@@ -34,9 +33,7 @@ export default function Login() {
       setIsLoading(false);
     }
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo Card */}
         <div className="bg-card rounded-3xl shadow-2xl overflow-hidden animate-scale-in">
@@ -70,15 +67,7 @@ export default function Login() {
                   <Mail className="h-4 w-4" />
                   ئیمەیڵ
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="example@email.com"
-                  className="bg-muted/50 h-12"
-                  required
-                />
+                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="example@email.com" className="bg-muted/50 h-12" required />
               </div>
 
               <div className="space-y-2">
@@ -86,44 +75,26 @@ export default function Login() {
                   <Lock className="h-4 w-4" />
                   وشەی نهێنی
                 </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="bg-muted/50 h-12"
-                  minLength={6}
-                  required
-                />
+                <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" className="bg-muted/50 h-12" minLength={6} required />
               </div>
             </div>
 
-            <Button
-              type="submit"
-              className="w-full h-12 gradient-primary text-primary-foreground text-lg font-semibold"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
+            <Button type="submit" className="w-full h-12 gradient-primary text-primary-foreground text-lg font-semibold" disabled={isLoading}>
+              {isLoading ? <span className="flex items-center gap-2">
                   <span className="h-5 w-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   چاوەڕێ بکە...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
+                </span> : <span className="flex items-center gap-2">
                   <LogIn className="h-5 w-5" />
                   چوونەژوورەوە
-                </span>
-              )}
+                </span>}
             </Button>
 
 
             <p className="text-center text-xs text-muted-foreground mt-4">
-              دروستکراوە بۆ قوتابی محمد سلێمان احمد
+              دروستکراوە  لە لاین محمد سلێمان احمد
             </p>
           </form>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
