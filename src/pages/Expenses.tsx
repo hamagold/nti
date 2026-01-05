@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Plus, Zap, Droplets, MoreHorizontal, Trash2, Building2 } from 'lucide-react';
+import { Plus, Zap, Droplets, MoreHorizontal, Trash2, Building2, Loader2 } from 'lucide-react';
 
 const expenseTypes = [
   { id: 'electricity', name: 'کارەبا', icon: Zap, color: 'text-yellow-500' },
@@ -40,7 +40,7 @@ const expenseTypes = [
 ];
 
 export default function Expenses() {
-  const { expenses, addExpense, deleteExpense } = useStore();
+  const { expenses, addExpense, deleteExpense, expensesLoading } = useStore();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -152,7 +152,12 @@ export default function Expenses() {
         </div>
 
         {/* Expenses List */}
-        {expenses.length === 0 ? (
+        {expensesLoading ? (
+          <div className="flex flex-col items-center justify-center py-16">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <p className="text-muted-foreground">بارکردنی خەرجیەکان...</p>
+          </div>
+        ) : expenses.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Building2 className="h-16 w-16 mb-4 opacity-50" />
             <p className="text-lg font-medium">هیچ خەرجیەک تۆمار نەکراوە</p>

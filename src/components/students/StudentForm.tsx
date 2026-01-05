@@ -94,7 +94,6 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
         // Don't update year, totalFee, paidAmount, payments, yearPayments here
         // Those are managed separately through payment and progression systems
       });
-      toast.success('زانیاری قوتابی نوێکرایەوە');
     } else {
       const studentCode = generateStudentCode(
         formData.department as Department,
@@ -117,7 +116,6 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
         payments: [],
       };
       addStudent(newStudent);
-      toast.success('قوتابی بە سەرکەوتوویی تۆمار کرا');
       onSuccess?.();
     }
     
