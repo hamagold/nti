@@ -66,6 +66,19 @@ serve(async (req) => {
       )
     }
 
+    // Store admin email in admin_profiles table
+    const { error: profileError } = await supabaseAdmin
+      .from('admin_profiles')
+      .insert({
+        user_id: userData.user.id,
+        email: email,
+      })
+
+    if (profileError) {
+      console.error('Error creating admin profile:', profileError)
+      // Not critical, continue
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
