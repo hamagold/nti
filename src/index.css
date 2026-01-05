@@ -2,7 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@300;400;500;600;700;800&display=swap');
+/* Rudaw-style Kufi font */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -118,12 +119,19 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Noto Sans Arabic', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Noto Kufi Arabic', sans-serif;
+    font-weight: 600;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
+    font-family: 'Noto Kufi Arabic', sans-serif;
+  }
+
+  /* Force English numbers everywhere */
+  * {
+    font-variant-numeric: lining-nums tabular-nums;
   }
 }
 

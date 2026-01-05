@@ -36,6 +36,7 @@ export default function Students() {
   const [filterDept, setFilterDept] = useState<string>('all');
   const [filterRoom, setFilterRoom] = useState<string>('all');
   const [filterYear, setFilterYear] = useState<string>('all');
+  const [filterPaymentStatus, setFilterPaymentStatus] = useState<string>('all');
 
   // Filter students
   const filteredStudents = students.filter((student) => {
@@ -48,7 +49,15 @@ export default function Students() {
     const matchesRoom = filterRoom === 'all' || student.room === filterRoom;
     const matchesYear =
       filterYear === 'all' || student.year.toString() === filterYear;
-    return matchesSearch && matchesDept && matchesRoom && matchesYear;
+    
+    // Payment status filter
+    const remaining = student.totalFee - student.paidAmount;
+    const matchesPaymentStatus = 
+      filterPaymentStatus === 'all' ||
+      (filterPaymentStatus === 'unpaid' && remaining > 0) ||
+      (filterPaymentStatus === 'paid' && remaining <= 0);
+    
+    return matchesSearch && matchesDept && matchesRoom && matchesYear && matchesPaymentStatus;
   });
 
   const handleEdit = (student: Student) => {
@@ -136,6 +145,17 @@ export default function Students() {
                     ساڵی {year}
                   </SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filterPaymentStatus} onValueChange={setFilterPaymentStatus}>
+              <SelectTrigger className="w-[140px] bg-card">
+                <SelectValue placeholder="بارودۆخی پارەدان" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">هەموو</SelectItem>
+                <SelectItem value="unpaid">قەرزدار</SelectItem>
+                <SelectItem value="paid">تەواوکردوو</SelectItem>
               </SelectContent>
             </Select>
           </div>

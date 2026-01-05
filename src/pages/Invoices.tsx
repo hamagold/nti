@@ -4,6 +4,7 @@ import { useStore } from '@/store/useStore';
 import { formatCurrency, getDepartmentInfo } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -13,14 +14,32 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { format } from 'date-fns';
-import { Search, Receipt, FileText } from 'lucide-react';
+import { Search, Receipt, FileText, Eye } from 'lucide-react';
+import { InvoiceViewDialog } from '@/components/invoices/InvoiceViewDialog';
+
+interface PaymentWithStudent {
+  id: string;
+  studentId: string;
+  amount: number;
+  date: string;
+  note?: string;
+  studentName: string;
+  studentPhone: string;
+  department: string;
+  room: string;
+  year: number;
+  totalFee: number;
+  totalPaid: number;
+}
 
 export default function Invoices() {
   const { students } = useStore();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedPayment, setSelectedPayment] = useState<PaymentWithStudent | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
 
   // Get all payments with student info
-  const allPayments = students
+  const allPayments: PaymentWithStudent[] = students
     .flatMap((student) =>
       student.payments.map((payment) => ({
         ...payment,
@@ -40,6 +59,11 @@ export default function Invoices() {
   );
 
   const totalAmount = allPayments.reduce((sum, p) => sum + p.amount, 0);
+
+  const handleViewInvoice = (payment: PaymentWithStudent) => {
+    setSelectedPayment(payment);
+    setViewOpen(true);
+  };
 
   return (
     <div className="min-h-screen pb-8">
@@ -102,19 +126,20 @@ export default function Invoices() {
                 <TableHead className="text-right">بڕ</TableHead>
                 <TableHead className="text-right">بەروار</TableHead>
                 <TableHead className="text-right">تێبینی</TableHead>
+                <TableHead className="text-right">کردار</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredPayments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     <Receipt className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
                     <p className="text-muted-foreground">هیچ پسولەیەک نەدۆزرایەوە</p>
                   </TableCell>
                 </TableRow>
               ) : (
                 filteredPayments.map((payment, index) => {
-                  const dept = getDepartmentInfo(payment.department);
+                  const dept = getDepartmentInfo(payment.department as any);
                   return (
                     <TableRow
                       key={payment.id}
@@ -150,6 +175,16 @@ export default function Invoices() {
                       <TableCell className="max-w-[200px] truncate text-muted-foreground">
                         {payment.note || '-'}
                       </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewInvoice(payment)}
+                        >
+                          <Eye className="h-4 w-4 ml-1" />
+                          بینین
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })
@@ -158,6 +193,13 @@ export default function Invoices() {
           </Table>
         </div>
       </div>
+
+      {/* Invoice View Dialog */}
+      <InvoiceViewDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        payment={selectedPayment}
+      />
     </div>
   );
 }

@@ -35,11 +35,11 @@ const editorMenuItems = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
-  const { hasPermission, isEditor } = usePermissions();
+  const { hasPermission, isLocalStaff } = usePermissions();
 
-  // For editor, show only add student/staff pages
+  // For local_staff, show only add student/staff pages
   // For others, show menu items based on permissions
-  const menuItems = isEditor
+  const menuItems = isLocalStaff
     ? editorMenuItems
     : allMenuItems.filter(item => hasPermission(item.permission));
 

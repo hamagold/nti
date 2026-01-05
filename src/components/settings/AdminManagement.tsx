@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Save, X, Shield, Eye, User } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Shield, Eye, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,17 +10,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useSettingsStore, Admin } from '@/store/settingsStore';
-import { useAuthStore } from '@/store/authStore';
+import { useSettingsStore, Admin, AdminRole } from '@/store/settingsStore';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 import { cn } from '@/lib/utils';
 
-const ROLES = [
+const ROLES: { id: AdminRole; name: string; icon: typeof Shield; description: string }[] = [
   { id: 'superadmin', name: 'سوپەر ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو' },
   { id: 'admin', name: 'ئەدمین', icon: Eye, description: 'تەنها بینینی داتا' },
-  { id: 'editor', name: 'ئیدیتۆر', icon: User, description: 'تەنها تۆمارکردنی قوتابی و مامۆستا' },
-] as const;
+  { id: 'staff', name: 'ستاف', icon: UserPlus, description: 'کارمەندی ناوخۆ' },
+  { id: 'local_staff', name: 'ستافی ناوخۆ', icon: UserPlus, description: 'تەنها تۆمارکردن' },
+];
 
 export function AdminManagement() {
   const { admins, addAdmin, updateAdmin, deleteAdmin, addActivityLog } = useSettingsStore();
@@ -29,12 +29,12 @@ export function AdminManagement() {
   const [isAdding, setIsAdding] = useState(false);
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newRole, setNewRole] = useState<'superadmin' | 'admin' | 'editor'>('editor');
+  const [newRole, setNewRole] = useState<AdminRole>('local_staff');
   
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editUsername, setEditUsername] = useState('');
   const [editPassword, setEditPassword] = useState('');
-  const [editRole, setEditRole] = useState<'superadmin' | 'admin' | 'editor'>('editor');
+  const [editRole, setEditRole] = useState<AdminRole>('local_staff');
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export function AdminManagement() {
     setIsAdding(false);
     setNewUsername('');
     setNewPassword('');
-    setNewRole('editor');
+    setNewRole('local_staff');
   };
 
   const startEdit = (admin: Admin) => {
@@ -181,7 +181,7 @@ export function AdminManagement() {
             <Label>ڕۆڵ</Label>
             <Select
               value={newRole}
-              onValueChange={(v) => setNewRole(v as typeof newRole)}
+              onValueChange={(v) => setNewRole(v as AdminRole)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -254,7 +254,7 @@ export function AdminManagement() {
                     <Label className="text-xs">ڕۆڵ</Label>
                     <Select
                       value={editRole}
-                      onValueChange={(v) => setEditRole(v as typeof editRole)}
+                      onValueChange={(v) => setEditRole(v as AdminRole)}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -293,7 +293,7 @@ export function AdminManagement() {
                         'h-10 w-10 rounded-full flex items-center justify-center',
                         admin.role === 'superadmin'
                           ? 'gradient-primary'
-                          : admin.role === 'editor'
+                          : admin.role === 'staff' || admin.role === 'local_staff'
                           ? 'gradient-secondary'
                           : 'bg-muted'
                       )}

@@ -1,87 +1,16 @@
 import { useAuthStore } from '@/store/authStore';
-
-type Permission = 
-  | 'view_dashboard'
-  | 'view_students'
-  | 'view_staff'
-  | 'view_payments'
-  | 'view_expenses'
-  | 'view_invoices'
-  | 'view_reports'
-  | 'view_settings'
-  | 'add_student'
-  | 'edit_student'
-  | 'delete_student'
-  | 'add_staff'
-  | 'edit_staff'
-  | 'delete_staff'
-  | 'add_payment'
-  | 'add_expense'
-  | 'edit_expense'
-  | 'delete_expense'
-  | 'add_salary'
-  | 'manage_departments'
-  | 'manage_admins'
-  | 'manage_contact'
-  | 'manage_notifications'
-  | 'view_logs';
-
-// Role permissions mapping
-const ROLE_PERMISSIONS: Record<'superadmin' | 'admin' | 'editor', Permission[]> = {
-  // Super Admin: Full access to everything
-  superadmin: [
-    'view_dashboard',
-    'view_students',
-    'view_staff',
-    'view_payments',
-    'view_expenses',
-    'view_invoices',
-    'view_reports',
-    'view_settings',
-    'add_student',
-    'edit_student',
-    'delete_student',
-    'add_staff',
-    'edit_staff',
-    'delete_staff',
-    'add_payment',
-    'add_expense',
-    'edit_expense',
-    'delete_expense',
-    'add_salary',
-    'manage_departments',
-    'manage_admins',
-    'manage_contact',
-    'manage_notifications',
-    'view_logs',
-  ],
-  
-  // Admin: View only - no editing
-  admin: [
-    'view_dashboard',
-    'view_students',
-    'view_staff',
-    'view_payments',
-    'view_expenses',
-    'view_invoices',
-    'view_reports',
-    'view_settings',
-    'view_logs',
-  ],
-  
-  // Editor: Only register students and staff - no viewing other data
-  editor: [
-    'add_student',
-    'add_staff',
-  ],
-};
+import { useSettingsStore, Permission, AdminRole, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
 
 export function usePermissions() {
   const { currentRole, isAuthenticated } = useAuthStore();
+  const { rolePermissions } = useSettingsStore();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!isAuthenticated || !currentRole) return false;
-    return ROLE_PERMISSIONS[currentRole]?.includes(permission) ?? false;
+    
+    // Get permissions from stored config or defaults
+    const permissions = rolePermissions?.[currentRole] || DEFAULT_ROLE_PERMISSIONS[currentRole];
+    return permissions?.includes(permission) ?? false;
   };
 
   const canView = (page: 'dashboard' | 'students' | 'staff' | 'payments' | 'expenses' | 'invoices' | 'reports' | 'settings'): boolean => {
@@ -106,7 +35,8 @@ export function usePermissions() {
 
   const isSuperAdmin = currentRole === 'superadmin';
   const isAdmin = currentRole === 'admin';
-  const isEditor = currentRole === 'editor';
+  const isStaff = currentRole === 'staff';
+  const isLocalStaff = currentRole === 'local_staff';
 
   return {
     hasPermission,
@@ -117,7 +47,8 @@ export function usePermissions() {
     canManage,
     isSuperAdmin,
     isAdmin,
-    isEditor,
+    isStaff,
+    isLocalStaff,
     currentRole,
   };
 }

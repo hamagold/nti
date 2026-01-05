@@ -5,6 +5,7 @@ import { AdminManagement } from '@/components/settings/AdminManagement';
 import { ContactManagement } from '@/components/settings/ContactManagement';
 import { ActivityLogView } from '@/components/settings/ActivityLogView';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
+import { RolePermissions } from '@/components/settings/RolePermissions';
 import {
   Building2,
   Users,
@@ -12,6 +13,7 @@ import {
   History,
   Bell,
   Settings as SettingsIcon,
+  Shield,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -52,6 +54,13 @@ export default function Settings() {
             >
               <Bell className="h-4 w-4" />
               <span className="hidden sm:inline">ئاگاداری</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="permissions"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Shield className="h-4 w-4" />
+              <span className="hidden sm:inline">دەسەڵاتەکان</span>
             </TabsTrigger>
             <TabsTrigger
               value="logs"
@@ -119,6 +128,21 @@ export default function Settings() {
                 </div>
               </div>
               <NotificationSettings />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="permissions">
+            <div className="rounded-2xl bg-card p-4 md:p-8 shadow-lg animate-slide-up">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-12 w-12 rounded-xl gradient-hero flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی دەسەڵاتەکان</h2>
+                  <p className="text-sm text-muted-foreground">دیاریکردنی دەسەڵاتەکانی هەر ڕۆڵ</p>
+                </div>
+              </div>
+              <RolePermissions />
             </div>
           </TabsContent>
 
