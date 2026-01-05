@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,8 +21,30 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Initialize dark mode on first load
+function ThemeInitializer() {
+  useEffect(() => {
+    const stored = localStorage.getItem('theme');
+    const root = document.documentElement;
+    
+    if (!stored) {
+      localStorage.setItem('theme', 'dark');
+      root.classList.add('dark');
+    } else if (stored === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
+  }, []);
+  
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeInitializer />
     <TooltipProvider>
       <Toaster />
       <Sonner />

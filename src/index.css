@@ -6,6 +6,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;600;700;800&display=swap');
 
 @layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
   :root {
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;
