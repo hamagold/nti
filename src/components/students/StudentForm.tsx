@@ -18,7 +18,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Camera, Upload, X } from 'lucide-react';
+import { Camera, Upload, X, Loader2 } from 'lucide-react';
+import { uploadStudentPhoto } from '@/hooks/useStorage';
 
 interface StudentFormProps {
   open: boolean;
@@ -30,6 +31,9 @@ interface StudentFormProps {
 export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: StudentFormProps) {
   const { students, addStudent, updateStudent } = useStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string>('');
   
   const getInitialFormData = () => ({
     name: editStudent?.name || '',
@@ -57,6 +61,8 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
         year: editStudent?.year?.toString() || '',
         totalFee: editStudent?.totalFee?.toString() || '',
       });
+      setPhotoFile(null);
+      setPhotoPreview(editStudent?.photo || '');
     }
     onOpenChange(isOpen);
   };
@@ -64,15 +70,16 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setPhotoFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, photo: reader.result as string }));
+        setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.phone || !formData.department || !formData.room || !formData.year || !formData.totalFee) {
@@ -82,45 +89,76 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
 
     const customFee = parseFloat(formData.totalFee);
     
-    if (editStudent) {
-      // Only update the fields that changed, preserve all other data
-      updateStudent(editStudent.id, {
-        name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        photo: formData.photo,
-        department: formData.department as Department,
-        room: formData.room as Room,
-        // Don't update year, totalFee, paidAmount, payments, yearPayments here
-        // Those are managed separately through payment and progression systems
-      });
-    } else {
-      const studentCode = generateStudentCode(
-        formData.department as Department,
-        parseInt(formData.year) as Year,
-        students
-      );
-      const newStudent: Student = {
-        id: crypto.randomUUID(),
-        code: studentCode,
-        name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-        photo: formData.photo,
-        department: formData.department as Department,
-        room: formData.room as Room,
-        year: parseInt(formData.year) as Year,
-        totalFee: customFee,
-        paidAmount: 0,
-        registrationDate: new Date().toISOString(),
-        payments: [],
-      };
-      addStudent(newStudent);
-      onSuccess?.();
+    try {
+      setIsUploading(true);
+      
+      if (editStudent) {
+        let photoUrl = formData.photo;
+        
+        // Upload new photo if selected
+        if (photoFile) {
+          const uploadedUrl = await uploadStudentPhoto(photoFile, editStudent.id);
+          if (uploadedUrl) {
+            photoUrl = uploadedUrl;
+          }
+        }
+        
+        // Only update the fields that changed, preserve all other data
+        updateStudent(editStudent.id, {
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          photo: photoUrl,
+          department: formData.department as Department,
+          room: formData.room as Room,
+        });
+      } else {
+        const studentId = crypto.randomUUID();
+        const studentCode = generateStudentCode(
+          formData.department as Department,
+          parseInt(formData.year) as Year,
+          students
+        );
+        
+        let photoUrl: string | undefined = undefined;
+        
+        // Upload photo if selected
+        if (photoFile) {
+          const uploadedUrl = await uploadStudentPhoto(photoFile, studentId);
+          if (uploadedUrl) {
+            photoUrl = uploadedUrl;
+          }
+        }
+        
+        const newStudent: Student = {
+          id: studentId,
+          code: studentCode,
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          photo: photoUrl,
+          department: formData.department as Department,
+          room: formData.room as Room,
+          year: parseInt(formData.year) as Year,
+          totalFee: customFee,
+          paidAmount: 0,
+          registrationDate: new Date().toISOString(),
+          payments: [],
+        };
+        addStudent(newStudent);
+        onSuccess?.();
+      }
+      
+      handleOpenChange(false);
+    } catch (error) {
+      console.error('Error saving student:', error);
+      toast.error('هەڵە لە تۆمارکردن');
+    } finally {
+      setIsUploading(false);
     }
-    
-    handleOpenChange(false);
   };
+
+  const displayPhoto = photoPreview || formData.photo;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -139,10 +177,10 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
                 onClick={() => fileInputRef.current?.click()}
                 className="group relative h-32 w-32 cursor-pointer overflow-hidden rounded-2xl border-2 border-dashed border-primary/30 bg-muted/50 transition-all hover:border-primary hover:bg-muted"
               >
-                {formData.photo ? (
+                {displayPhoto ? (
                   <>
                     <img
-                      src={formData.photo}
+                      src={displayPhoto}
                       alt="Student"
                       className="h-full w-full object-cover"
                     />
@@ -157,10 +195,14 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
                   </div>
                 )}
               </div>
-              {formData.photo && (
+              {displayPhoto && (
                 <button
                   type="button"
-                  onClick={() => setFormData((prev) => ({ ...prev, photo: '' }))}
+                  onClick={() => {
+                    setPhotoFile(null);
+                    setPhotoPreview('');
+                    setFormData((prev) => ({ ...prev, photo: '' }));
+                  }}
                   className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg"
                 >
                   <X className="h-4 w-4" />
@@ -307,11 +349,19 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={isUploading}
             >
               پاشگەزبوونەوە
             </Button>
-            <Button type="submit" className="gradient-primary text-primary-foreground px-8">
-              {editStudent ? 'نوێکردنەوە' : 'تۆمارکردن'}
+            <Button type="submit" className="gradient-primary text-primary-foreground px-8" disabled={isUploading}>
+              {isUploading ? (
+                <span className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  چاوەڕێ بکە...
+                </span>
+              ) : (
+                editStudent ? 'نوێکردنەوە' : 'تۆمارکردن'
+              )}
             </Button>
           </div>
         </form>

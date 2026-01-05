@@ -4,10 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { useSettingsStore, AdminRole } from './settingsStore';
 import { User, Session } from '@supabase/supabase-js';
 
+type AppRole = 'superadmin' | 'admin' | 'user';
+
 interface AuthState {
   isAuthenticated: boolean;
   currentUser: string | null;
   currentRole: AdminRole | null;
+  appRole: AppRole | null;
   supabaseUser: User | null;
   session: Session | null;
   isLoading: boolean;
@@ -16,6 +19,7 @@ interface AuthState {
   logout: () => Promise<void>;
   setSession: (session: Session | null) => void;
   initialize: () => Promise<void>;
+  fetchUserRole: (userId: string) => Promise<AppRole | null>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -24,9 +28,28 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       currentUser: null,
       currentRole: null,
+      appRole: null,
       supabaseUser: null,
       session: null,
       isLoading: true,
+      
+      fetchUserRole: async (userId: string): Promise<AppRole | null> => {
+        try {
+          const { data, error } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', userId)
+            .single();
+          
+          if (error || !data) {
+            return null;
+          }
+          
+          return data.role as AppRole;
+        } catch {
+          return null;
+        }
+      },
       
       login: async (email: string, password: string) => {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -40,10 +63,12 @@ export const useAuthStore = create<AuthState>()(
         }
         
         if (data.user && data.session) {
+          const role = await get().fetchUserRole(data.user.id);
           set({ 
             isAuthenticated: true, 
             currentUser: data.user.email,
-            currentRole: 'superadmin', // Default role for authenticated users
+            currentRole: 'superadmin',
+            appRole: role || 'user',
             supabaseUser: data.user,
             session: data.session,
           });
@@ -68,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true, 
             currentUser: data.user.email,
             currentRole: 'superadmin',
+            appRole: 'user',
             supabaseUser: data.user,
             session: data.session,
           });
@@ -83,17 +109,20 @@ export const useAuthStore = create<AuthState>()(
           isAuthenticated: false, 
           currentUser: null, 
           currentRole: null,
+          appRole: null,
           supabaseUser: null,
           session: null,
         });
       },
       
-      setSession: (session: Session | null) => {
+      setSession: async (session: Session | null) => {
         if (session) {
+          const role = await get().fetchUserRole(session.user.id);
           set({
             isAuthenticated: true,
             currentUser: session.user.email,
             currentRole: 'superadmin',
+            appRole: role || 'user',
             supabaseUser: session.user,
             session,
             isLoading: false,
@@ -103,6 +132,7 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             currentUser: null,
             currentRole: null,
+            appRole: null,
             supabaseUser: null,
             session: null,
             isLoading: false,
@@ -112,11 +142,11 @@ export const useAuthStore = create<AuthState>()(
       
       initialize: async () => {
         const { data: { session } } = await supabase.auth.getSession();
-        get().setSession(session);
+        await get().setSession(session);
         
         // Listen for auth changes
-        supabase.auth.onAuthStateChange((_event, session) => {
-          get().setSession(session);
+        supabase.auth.onAuthStateChange(async (_event, session) => {
+          await get().setSession(session);
         });
       },
     }),
