@@ -83,10 +83,16 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
     const customFee = parseFloat(formData.totalFee);
     
     if (editStudent) {
+      // Only update the fields that changed, preserve all other data
       updateStudent(editStudent.id, {
-        ...formData,
-        year: parseInt(formData.year) as Year,
-        totalFee: customFee,
+        name: formData.name,
+        phone: formData.phone,
+        address: formData.address,
+        photo: formData.photo,
+        department: formData.department as Department,
+        room: formData.room as Room,
+        // Don't update year, totalFee, paidAmount, payments, yearPayments here
+        // Those are managed separately through payment and progression systems
       });
       toast.success('زانیاری قوتابی نوێکرایەوە');
     } else {
