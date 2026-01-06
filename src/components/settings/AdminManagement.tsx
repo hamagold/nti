@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Plus, Pencil, Trash2, Save, X, Shield, Eye, UserPlus, Loader2 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,31 +48,34 @@ export function AdminManagement() {
   
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  // Fetch admins from user_roles and admin_profiles tables
-  const fetchAdmins = async () => {
-    setIsLoading(true);
+  // Fetch admins from user_roles and admin_profiles tables - optimized with parallel fetching
+  const fetchAdmins = useCallback(async (showLoader = true) => {
+    if (showLoader && isInitialLoad) {
+      setIsLoading(true);
+    }
     try {
-      // Fetch user roles
-      const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Fetch both tables in parallel for better performance
+      const [rolesResult, profilesResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .select('user_id, role, created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('admin_profiles')
+          .select('user_id, email')
+      ]);
 
-      if (rolesError) throw rolesError;
-
-      // Fetch admin profiles for emails
-      const { data: profilesData } = await supabase
-        .from('admin_profiles')
-        .select('*');
+      if (rolesResult.error) throw rolesResult.error;
 
       // Create a map of user_id to email
       const emailMap = new Map<string, string>();
-      (profilesData || []).forEach((profile: any) => {
+      (profilesResult.data || []).forEach((profile) => {
         emailMap.set(profile.user_id, profile.email);
       });
 
-      const adminList: AdminUser[] = (rolesData || []).map(ur => ({
+      const adminList: AdminUser[] = (rolesResult.data || []).map(ur => ({
         id: ur.user_id,
         email: emailMap.get(ur.user_id) || 'ئیمەیڵ نەدۆزرایەوە',
         role: ur.role as AppRole,
@@ -88,8 +92,9 @@ export function AdminManagement() {
       });
     } finally {
       setIsLoading(false);
+      setIsInitialLoad(false);
     }
-  };
+  }, [toast, isInitialLoad]);
 
   useEffect(() => {
     fetchAdmins();
@@ -136,7 +141,7 @@ export function AdminManagement() {
       setNewEmail('');
       setNewPassword('');
       setNewRole('staff');
-      fetchAdmins();
+      fetchAdmins(false);
     } catch (error: any) {
       console.error('Error creating admin:', error);
       toast({
@@ -172,7 +177,7 @@ export function AdminManagement() {
       });
       
       setEditingId(null);
-      fetchAdmins();
+      fetchAdmins(false);
     } catch (error: any) {
       console.error('Error updating role:', error);
       toast({
@@ -208,7 +213,7 @@ export function AdminManagement() {
       
       setDeleteConfirmOpen(false);
       setDeletingId(null);
-      fetchAdmins();
+      fetchAdmins(false);
     } catch (error: any) {
       console.error('Error deleting admin:', error);
       toast({
@@ -223,10 +228,37 @@ export function AdminManagement() {
     return ROLES.find((r) => r.id === role) || ROLES[2]; // Default to staff
   };
 
-  if (isLoading) {
+  // Skeleton loading for better UX
+  const AdminSkeleton = useMemo(() => (
+    <div className="space-y-3">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="p-4 rounded-xl border bg-muted/50 border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="flex gap-1">
+              <Skeleton className="h-8 w-8 rounded" />
+              <Skeleton className="h-8 w-8 rounded" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ), []);
+
+  if (isLoading && isInitialLoad) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-foreground">بەڕێوەبردنی ئەدمین</h3>
+          <Skeleton className="h-9 w-24" />
+        </div>
+        {AdminSkeleton}
       </div>
     );
   }
