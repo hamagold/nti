@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   LayoutDashboard,
   Users,
@@ -15,20 +16,21 @@ import {
 } from 'lucide-react';
 
 const allMenuItems = [
-  { icon: LayoutDashboard, label: 'داشبۆرد', path: '/', permission: 'view_dashboard' as const },
-  { icon: GraduationCap, label: 'قوتابیان', path: '/students', permission: 'view_students' as const },
-  { icon: CreditCard, label: 'پارەدان', path: '/payments', permission: 'view_payments' as const },
-  { icon: Receipt, label: 'پسولەکان', path: '/invoices', permission: 'view_invoices' as const },
-  { icon: Users, label: 'ستاف', path: '/staff', permission: 'view_staff' as const },
-  { icon: Building2, label: 'خەرجیەکان', path: '/expenses', permission: 'view_expenses' as const },
-  { icon: FileText, label: 'ڕاپۆرتەکان', path: '/reports', permission: 'view_reports' as const },
-  { icon: Settings, label: 'ڕێکخستنەکان', path: '/settings', permission: 'view_settings' as const },
+  { icon: LayoutDashboard, labelKey: 'nav.dashboard', path: '/', permission: 'view_dashboard' as const },
+  { icon: GraduationCap, labelKey: 'nav.students', path: '/students', permission: 'view_students' as const },
+  { icon: CreditCard, labelKey: 'nav.payments', path: '/payments', permission: 'view_payments' as const },
+  { icon: Receipt, labelKey: 'nav.invoices', path: '/invoices', permission: 'view_invoices' as const },
+  { icon: Users, labelKey: 'nav.staff', path: '/staff', permission: 'view_staff' as const },
+  { icon: Building2, labelKey: 'nav.expenses', path: '/expenses', permission: 'view_expenses' as const },
+  { icon: FileText, labelKey: 'nav.reports', path: '/reports', permission: 'view_reports' as const },
+  { icon: Settings, labelKey: 'nav.settings', path: '/settings', permission: 'view_settings' as const },
 ];
 
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { hasPermission } = usePermissions();
+  const { t } = useTranslation();
 
   // Menu visibility is controlled ONLY by permissions (including for local_staff)
   const menuItems = allMenuItems.filter(item => hasPermission(item.permission));
@@ -95,7 +97,7 @@ export function Sidebar() {
               />
               {!collapsed && (
                 <span className="text-sm font-medium animate-fade-in">
-                  {item.label}
+                  {t(item.labelKey)}
                 </span>
               )}
             </NavLink>

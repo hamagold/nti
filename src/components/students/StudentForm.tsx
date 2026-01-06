@@ -3,6 +3,7 @@ import { useStore } from '@/store/useStore';
 import { Student, Department, Room, Year, DEPARTMENTS, ROOMS, YEARS, generateStudentCode } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { LocalizedInput } from '@/components/ui/localized-input';
 import { Label } from '@/components/ui/label';
 import {
   Select,
@@ -235,8 +236,9 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
 
             <div className="space-y-2">
               <Label htmlFor="phone">ژمارەی مۆبایل</Label>
-              <Input
+              <LocalizedInput
                 id="phone"
+                type="tel"
                 value={formData.phone}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, phone: e.target.value }))
@@ -327,9 +329,9 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="totalFee">کرێی خوێندن (دینار)</Label>
-              <Input
+              <LocalizedInput
                 id="totalFee"
-                type="number"
+                inputMode="numeric"
                 value={formData.totalFee}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, totalFee: e.target.value }))
