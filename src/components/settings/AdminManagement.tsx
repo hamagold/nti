@@ -15,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useTranslation } from '@/hooks/useTranslation';
 
 type AppRole = 'superadmin' | 'admin' | 'staff' | 'local_staff';
 
@@ -36,6 +37,7 @@ const ITEMS_PER_PAGE = 5;
 
 export function AdminManagement() {
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -91,8 +93,8 @@ export function AdminManagement() {
     } catch (error) {
       console.error('Error fetching admins:', error);
       toast({
-        title: 'هەڵە',
-        description: 'نەتوانرا ئەدمینەکان بهێنرێتەوە',
+        title: t('adminMgmt.error'),
+        description: t('adminMgmt.fetchError'),
         variant: 'destructive',
       });
     } finally {
@@ -108,8 +110,8 @@ export function AdminManagement() {
   const handleAdd = async () => {
     if (!newEmail.trim() || !newPassword.trim()) {
       toast({
-        title: 'هەڵە',
-        description: 'تکایە ئیمەیڵ و پاسۆرد بنووسە',
+        title: t('adminMgmt.error'),
+        description: t('adminMgmt.fillEmailPassword'),
         variant: 'destructive',
       });
       return;
@@ -117,8 +119,8 @@ export function AdminManagement() {
 
     if (newPassword.length < 6) {
       toast({
-        title: 'هەڵە',
-        description: 'پاسۆرد دەبێت لانیکەم ٦ پیت بێت',
+        title: t('adminMgmt.error'),
+        description: t('adminMgmt.passwordMinLength'),
         variant: 'destructive',
       });
       return;
@@ -138,8 +140,8 @@ export function AdminManagement() {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: 'سەرکەوتوو بوو',
-        description: `ئەدمینی "${newEmail.trim()}" زیادکرا`,
+        title: t('adminMgmt.success'),
+        description: `${t('adminMgmt.adminAdded')}: ${newEmail.trim()}`,
       });
       
       setIsAdding(false);
@@ -150,8 +152,8 @@ export function AdminManagement() {
     } catch (error: any) {
       console.error('Error creating admin:', error);
       toast({
-        title: 'هەڵە',
-        description: error.message || 'نەتوانرا ئەدمین زیاد بکرێت',
+        title: t('adminMgmt.error'),
+        description: error.message || t('adminMgmt.addError'),
         variant: 'destructive',
       });
     } finally {
@@ -184,8 +186,8 @@ export function AdminManagement() {
       if (insertError) throw insertError;
 
       toast({
-        title: 'نوێکرایەوە',
-        description: 'ڕۆڵی ئەدمین گۆڕدرا',
+        title: t('adminMgmt.updated'),
+        description: t('adminMgmt.roleChanged'),
       });
 
       setEditingId(null);
@@ -193,8 +195,8 @@ export function AdminManagement() {
     } catch (error: any) {
       console.error('Error updating role:', error);
       toast({
-        title: 'هەڵە',
-        description: error.message || 'نەتوانرا ڕۆڵ نوێ بکرێتەوە',
+        title: t('adminMgmt.error'),
+        description: error.message || t('adminMgmt.updateError'),
         variant: 'destructive',
       });
     } finally {
@@ -220,8 +222,8 @@ export function AdminManagement() {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: 'سڕایەوە',
-        description: 'ئەدمین سڕایەوە',
+        title: t('adminMgmt.deleted'),
+        description: t('adminMgmt.adminDeleted'),
       });
 
       setDeleteConfirmOpen(false);
@@ -230,15 +232,19 @@ export function AdminManagement() {
     } catch (error: any) {
       console.error('Error deleting admin:', error);
       toast({
-        title: 'هەڵە',
-        description: error.message || 'نەتوانرا ئەدمین بسڕدرێتەوە',
+        title: t('adminMgmt.error'),
+        description: error.message || t('adminMgmt.deleteError'),
         variant: 'destructive',
       });
     }
   };
 
   const getRoleInfo = (role: string) => {
-    return ROLES.find((r) => r.id === role) || ROLES[2]; // Default to staff
+    const r = ROLES.find((r) => r.id === role) || ROLES[2];
+    return {
+      ...r,
+      name: t(`rolePermissions.${r.id}`),
+    };
   };
 
   // Pagination calculations
@@ -282,7 +288,7 @@ export function AdminManagement() {
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-foreground">بەڕێوەبردنی ئەدمین</h3>
+          <h3 className="font-bold text-foreground">{t('adminMgmt.title')}</h3>
           <Skeleton className="h-9 w-24" />
         </div>
         {AdminSkeleton}
@@ -293,11 +299,11 @@ export function AdminManagement() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-foreground">بەڕێوەبردنی ئەدمین</h3>
+        <h3 className="font-bold text-foreground">{t('adminMgmt.title')}</h3>
         {!isAdding && (
           <Button size="sm" onClick={() => setIsAdding(true)}>
             <Plus className="h-4 w-4 ml-2" />
-            زیادکردن
+            {t('adminMgmt.add')}
           </Button>
         )}
       </div>
@@ -306,7 +312,7 @@ export function AdminManagement() {
         <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-4 animate-slide-up">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>ئیمەیڵ</Label>
+              <Label>{t('adminMgmt.email')}</Label>
               <Input
                 type="email"
                 value={newEmail}
@@ -316,7 +322,7 @@ export function AdminManagement() {
               />
             </div>
             <div>
-              <Label>پاسۆرد</Label>
+              <Label>{t('adminMgmt.password')}</Label>
               <Input
                 type="password"
                 value={newPassword}
@@ -327,7 +333,7 @@ export function AdminManagement() {
             </div>
           </div>
           <div>
-            <Label>ڕۆڵ</Label>
+            <Label>{t('adminMgmt.role')}</Label>
             <Select
               value={newRole}
               onValueChange={(v) => setNewRole(v as AppRole)}
@@ -340,9 +346,9 @@ export function AdminManagement() {
                   <SelectItem key={role.id} value={role.id}>
                     <div className="flex items-center gap-2">
                       <role.icon className="h-4 w-4" />
-                      <span>{role.name}</span>
+                      <span>{t(`rolePermissions.${role.id}`)}</span>
                       <span className="text-xs text-muted-foreground">
-                        ({role.description})
+                        ({t(`rolePermissions.${role.id}Desc`)})
                       </span>
                     </div>
                   </SelectItem>
@@ -353,7 +359,7 @@ export function AdminManagement() {
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setIsAdding(false)} disabled={isSaving}>
               <X className="h-4 w-4 ml-2" />
-              هەڵوەشاندنەوە
+              {t('adminMgmt.cancel')}
             </Button>
             <Button onClick={handleAdd} disabled={isSaving}>
               {isSaving ? (
@@ -361,7 +367,7 @@ export function AdminManagement() {
               ) : (
                 <Save className="h-4 w-4 ml-2" />
               )}
-              زیادکردن
+              {t('adminMgmt.add')}
             </Button>
           </div>
         </div>
@@ -370,7 +376,7 @@ export function AdminManagement() {
       <div className="space-y-3">
         {admins.length === 0 ? (
           <p className="text-center text-muted-foreground py-8">
-            هیچ ئەدمینێک نەدۆزرایەوە
+            {t('adminMgmt.noAdmins')}
           </p>
         ) : (
           paginatedAdmins.map((admin) => {
@@ -390,7 +396,7 @@ export function AdminManagement() {
                 {editingId === admin.id ? (
                   <div className="space-y-3">
                     <div>
-                      <Label className="text-xs">ڕۆڵ</Label>
+                      <Label className="text-xs">{t('adminMgmt.role')}</Label>
                       <Select
                         value={editRole}
                         onValueChange={(v) => setEditRole(v as AppRole)}
@@ -403,7 +409,7 @@ export function AdminManagement() {
                             <SelectItem key={role.id} value={role.id}>
                               <div className="flex items-center gap-2">
                                 <role.icon className="h-4 w-4" />
-                                <span>{role.name}</span>
+                                <span>{t(`rolePermissions.${role.id}`)}</span>
                               </div>
                             </SelectItem>
                           ))}
@@ -425,7 +431,7 @@ export function AdminManagement() {
                         ) : (
                           <>
                             <Save className="h-4 w-4 ml-1" />
-                            پاشەکەوت
+                            {t('adminMgmt.save')}
                           </>
                         )}
                       </Button>
@@ -456,7 +462,7 @@ export function AdminManagement() {
                       <div>
                         <p className="font-bold text-foreground text-sm" dir="ltr">{admin.email}</p>
                         <p className="text-xs text-muted-foreground">
-                          {roleInfo.name} - {roleInfo.description}
+                          {roleInfo.name} - {t(`rolePermissions.${admin.role}Desc`)}
                         </p>
                         <p className="text-xs text-muted-foreground/60 mt-1">
                           {new Date(admin.created_at).toLocaleDateString('ckb-IQ')}
@@ -495,7 +501,7 @@ export function AdminManagement() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between pt-4 border-t border-border">
           <p className="text-sm text-muted-foreground">
-            {admins.length} ئەدمین - لاپەڕەی {currentPage} لە {totalPages}
+            {admins.length} {t('adminMgmt.adminsCount')} - {t('adminMgmt.page')} {currentPage} {t('adminMgmt.of')} {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -535,8 +541,8 @@ export function AdminManagement() {
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
         onConfirm={handleDelete}
-        title="سڕینەوەی ئەدمین"
-        description="دڵنیایت لە سڕینەوەی ئەم ئەدمینە؟"
+        title={t('messages.confirmDelete')}
+        description={t('messages.confirmDelete')}
       />
     </div>
   );

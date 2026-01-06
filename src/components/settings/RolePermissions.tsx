@@ -7,6 +7,7 @@ import { Permission, AdminRole, DEFAULT_ROLE_PERMISSIONS } from '@/store/setting
 import { useAuthStore } from '@/store/authStore';
 import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { toast } from 'sonner';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export interface RolePermissionConfig {
   role: AdminRole;
@@ -79,6 +80,7 @@ export function RolePermissions() {
   const [selectedRole, setSelectedRole] = useState<AdminRole>('staff');
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { t } = useTranslation();
   
   const isSuperAdminUser = userRole === 'superadmin';
   
@@ -87,7 +89,7 @@ export function RolePermissions() {
   
   const handleTogglePermission = async (permission: Permission) => {
     if (!isSuperAdminUser) {
-      toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
+      toast.error(t('rolePermissions.onlySuperadmin'));
       return;
     }
     
@@ -101,19 +103,21 @@ export function RolePermissions() {
     setIsSaving(false);
     
     if (success) {
+      const permLabel = t(`rolePermissions.${permission}`);
+      const roleName = t(`rolePermissions.${selectedRole}`);
       toast.success(
         isRemoving 
-          ? `${PERMISSION_LABELS[permission]} لابرا لە ${ROLE_INFO[selectedRole].name}`
-          : `${PERMISSION_LABELS[permission]} زیادکرا بۆ ${ROLE_INFO[selectedRole].name}`
+          ? `${permLabel} ${t('rolePermissions.removed')} ${roleName}`
+          : `${permLabel} ${t('rolePermissions.addedTo')} ${roleName}`
       );
     } else {
-      toast.error('نەتوانرا دەسەڵات نوێ بکرێتەوە');
+      toast.error(t('rolePermissions.updateError'));
     }
   };
 
   const handleResetToDefault = async () => {
     if (!isSuperAdminUser) {
-      toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
+      toast.error(t('rolePermissions.onlySuperadmin'));
       return;
     }
     
@@ -122,13 +126,35 @@ export function RolePermissions() {
     setIsSaving(false);
     
     if (success) {
-      toast.success('دەسەڵاتەکان گەڕێنرانەوە بۆ بنچینەیی');
+      toast.success(t('rolePermissions.resetSuccess'));
     } else {
-      toast.error('نەتوانرا دەسەڵاتەکان بگەڕێنرێتەوە');
+      toast.error(t('rolePermissions.resetError'));
     }
   };
 
   const isSuperAdmin = selectedRole === 'superadmin';
+
+  const getCategoryLabel = (key: string) => {
+    const labels: Record<string, string> = {
+      viewing: t('rolePermissions.viewing'),
+      students: t('rolePermissions.studentsCategory'),
+      staff: t('rolePermissions.staffCategory'),
+      expenses: t('rolePermissions.expensesCategory'),
+      settings: t('rolePermissions.settingsCategory'),
+    };
+    return labels[key] || key;
+  };
+
+  const getRoleName = (role: AdminRole) => t(`rolePermissions.${role}`);
+  const getRoleDesc = (role: AdminRole) => {
+    const descs: Record<AdminRole, string> = {
+      superadmin: t('rolePermissions.superadminDesc'),
+      admin: t('rolePermissions.adminDesc'),
+      staff: t('rolePermissions.staffDesc'),
+      local_staff: t('rolePermissions.localStaffDesc'),
+    };
+    return descs[role];
+  };
 
   return (
     <div className="space-y-6">
@@ -141,9 +167,9 @@ export function RolePermissions() {
             setIsRefreshing(true);
             try {
               await Promise.all([refetch(), refreshRole()]);
-              toast.success('ڕۆڵ/دەسەڵات نوێ کرایەوە');
+              toast.success(t('rolePermissions.refreshed'));
             } catch {
-              toast.error('نەتوانرا نوێبکرێتەوە');
+              toast.error(t('rolePermissions.refreshError'));
             } finally {
               setIsRefreshing(false);
             }
@@ -156,7 +182,7 @@ export function RolePermissions() {
           ) : (
             <RefreshCw className="h-4 w-4" />
           )}
-          Force refresh role
+          {t('rolePermissions.forceRefresh')}
         </Button>
       </div>
 
@@ -174,7 +200,7 @@ export function RolePermissions() {
               className="flex items-center gap-2"
             >
               <Icon className="h-4 w-4" />
-              {info.name}
+              {getRoleName(role)}
             </Button>
           );
         })}
@@ -183,7 +209,7 @@ export function RolePermissions() {
       {/* Role Description */}
       <div className="p-4 rounded-xl bg-muted/50 border border-border">
         <p className="text-sm text-muted-foreground">
-          {ROLE_INFO[selectedRole].description}
+          {getRoleDesc(selectedRole)}
         </p>
       </div>
 
@@ -192,7 +218,7 @@ export function RolePermissions() {
         <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3">
           <Lock className="h-5 w-5 text-destructive" />
           <p className="text-sm text-destructive">
-            تەنها سوپەر ئەدمین دەتوانێت دەسەڵاتەکان بگۆڕێت
+            {t('rolePermissions.onlySuperadmin')}
           </p>
         </div>
       )}
@@ -201,15 +227,15 @@ export function RolePermissions() {
       {isSuperAdmin ? (
         <div className="p-6 rounded-xl bg-primary/5 border border-primary/20 text-center">
           <Shield className="h-12 w-12 mx-auto mb-3 text-primary" />
-          <p className="text-lg font-bold text-foreground">سوپەر ئەدمین دەسەڵاتی تەواوی هەیە</p>
-          <p className="text-sm text-muted-foreground">ناتوانرێت دەسەڵاتەکانی بگۆڕدرێت</p>
+          <p className="text-lg font-bold text-foreground">{t('rolePermissions.superadminFull')}</p>
+          <p className="text-sm text-muted-foreground">{t('rolePermissions.cannotChange')}</p>
         </div>
       ) : (
         <div className="space-y-6">
           {Object.entries(PERMISSION_CATEGORIES).map(([key, category]) => (
             <div key={key} className="space-y-3">
               <h4 className="font-bold text-foreground border-b border-border pb-2">
-                {category.label}
+                {getCategoryLabel(key)}
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {category.permissions.map((permission) => (
@@ -218,7 +244,7 @@ export function RolePermissions() {
                     className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser && !isSaving && !isRefreshing ? 'hover:bg-muted/50' : 'opacity-60'}`}
                   >
                     <Label htmlFor={permission} className={`text-sm ${isSuperAdminUser && !isSaving ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
-                      {PERMISSION_LABELS[permission]}
+                      {t(`rolePermissions.${permission}`)}
                     </Label>
                     <Switch
                       id={permission}
@@ -241,7 +267,7 @@ export function RolePermissions() {
                 ) : (
                   <RotateCcw className="h-4 w-4 ml-2" />
                 )}
-                گەڕانەوە بۆ بنچینەیی
+                {t('rolePermissions.resetToDefault')}
               </Button>
             </div>
           )}

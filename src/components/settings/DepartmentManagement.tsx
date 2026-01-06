@@ -7,10 +7,12 @@ import { useSettingsStore, type ActivityLog } from '@/store/settingsStore';
 import { formatCurrency, Department } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function DepartmentManagement() {
   const { departments, updateDepartment, addDepartment, deleteDepartment, addActivityLog } = useSettingsStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [editingId, setEditingId] = useState<Department | null>(null);
   const [editName, setEditName] = useState('');
   const [editFee, setEditFee] = useState('');
@@ -48,8 +50,8 @@ export function DepartmentManagement() {
       user: 'ئەدمین',
     });
     toast({
-      title: 'نوێکرایەوە',
-      description: 'بەشەکە بە سەرکەوتوویی نوێکرایەوە',
+      title: t('departmentMgmt.updated'),
+      description: t('departmentMgmt.departmentUpdated'),
     });
     setEditingId(null);
   };
@@ -57,8 +59,8 @@ export function DepartmentManagement() {
   const handleAdd = () => {
     if (!newName || !newId || !newFee) {
       toast({
-        title: 'هەڵە',
-        description: 'تکایە هەموو خانەکان پڕبکەوە',
+        title: t('common.error'),
+        description: t('departmentMgmt.fillAllFields'),
         variant: 'destructive',
       });
       return;
@@ -79,8 +81,8 @@ export function DepartmentManagement() {
     });
     
     toast({
-      title: 'زیادکرا',
-      description: 'بەشی نوێ زیادکرا',
+      title: t('departmentMgmt.added'),
+      description: t('departmentMgmt.departmentAdded'),
     });
     
     setIsAdding(false);
@@ -105,8 +107,8 @@ export function DepartmentManagement() {
       user: 'ئەدمین',
     });
     toast({
-      title: 'سڕایەوە',
-      description: 'بەشەکە سڕایەوە',
+      title: t('departmentMgmt.deleted'),
+      description: t('departmentMgmt.departmentDeleted'),
     });
     setDeleteConfirmOpen(false);
     setDeletingId(null);
@@ -115,11 +117,11 @@ export function DepartmentManagement() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-foreground">بەشەکان و کرێی سالانە</h3>
+        <h3 className="font-bold text-foreground">{t('departmentMgmt.title')}</h3>
         {!isAdding && (
           <Button size="sm" onClick={() => setIsAdding(true)}>
             <Plus className="h-4 w-4 ml-2" />
-            زیادکردن
+            {t('departmentMgmt.add')}
           </Button>
         )}
       </div>
@@ -128,15 +130,15 @@ export function DepartmentManagement() {
         <div className="p-4 rounded-xl bg-muted/50 border border-border space-y-4 animate-slide-up">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label>ناوی بەش</Label>
+              <Label>{t('departmentMgmt.departmentName')}</Label>
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="ناوی بەش"
+                placeholder={t('departmentMgmt.departmentName')}
               />
             </div>
             <div>
-              <Label>ئایکۆن</Label>
+              <Label>{t('departmentMgmt.icon')}</Label>
               <Input
                 value={newIcon}
                 onChange={(e) => setNewIcon(e.target.value)}
@@ -145,7 +147,7 @@ export function DepartmentManagement() {
               />
             </div>
             <div>
-              <Label>ID (ئینگلیزی)</Label>
+              <Label>{t('departmentMgmt.idEnglish')}</Label>
               <Input
                 value={newId}
                 onChange={(e) => setNewId(e.target.value)}
@@ -154,7 +156,7 @@ export function DepartmentManagement() {
               />
             </div>
             <div>
-              <Label>کرێی سالانە (دینار)</Label>
+              <Label>{t('departmentMgmt.yearlyFeeDinar')}</Label>
               <Input
                 type="number"
                 value={newFee}
@@ -166,11 +168,11 @@ export function DepartmentManagement() {
           <div className="flex gap-2 justify-end">
             <Button variant="outline" onClick={() => setIsAdding(false)}>
               <X className="h-4 w-4 ml-2" />
-              هەڵوەشاندنەوە
+              {t('departmentMgmt.cancel')}
             </Button>
             <Button onClick={handleAdd}>
               <Save className="h-4 w-4 ml-2" />
-              زیادکردن
+              {t('departmentMgmt.add')}
             </Button>
           </div>
         </div>
@@ -197,7 +199,7 @@ export function DepartmentManagement() {
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">کرێی سالانە (دینار)</Label>
+                  <Label className="text-xs">{t('departmentMgmt.yearlyFeeDinar')}</Label>
                   <Input
                     type="number"
                     value={editFee}
@@ -214,7 +216,7 @@ export function DepartmentManagement() {
                   </Button>
                   <Button size="sm" onClick={saveEdit}>
                     <Save className="h-4 w-4 ml-1" />
-                    پاشەکەوت
+                    {t('departmentMgmt.save')}
                   </Button>
                 </div>
               </div>
@@ -263,8 +265,8 @@ export function DepartmentManagement() {
         open={deleteConfirmOpen}
         onOpenChange={setDeleteConfirmOpen}
         onConfirm={handleDelete}
-        title="سڕینەوەی بەش"
-        description="دڵنیایت لە سڕینەوەی ئەم بەشە؟"
+        title={t('departmentMgmt.deleteDepartment')}
+        description={t('departmentMgmt.confirmDelete')}
       />
     </div>
   );
