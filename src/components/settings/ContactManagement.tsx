@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSettingsStore } from '@/store/settingsStore';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/hooks/useTranslation';
 
 export function ContactManagement() {
   const { contactInfo, updateContactInfo, addActivityLog } = useSettingsStore();
   const { toast } = useToast();
+  const { t } = useTranslation();
   
   const [email, setEmail] = useState(contactInfo.email);
   const [phone, setPhone] = useState(contactInfo.phone);
@@ -30,20 +32,20 @@ export function ContactManagement() {
     });
     
     toast({
-      title: 'پاشەکەوتکرا',
-      description: 'زانیاریەکان نوێکرانەوە',
+      title: t('contactMgmt.saved'),
+      description: t('contactMgmt.infoUpdated'),
     });
   };
 
   return (
     <div className="space-y-6">
-      <h3 className="font-bold text-foreground">زانیاری پەیوەندی</h3>
+      <h3 className="font-bold text-foreground">{t('contactMgmt.title')}</h3>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-primary" />
-            ئیمەیل
+            {t('contactMgmt.email')}
           </Label>
           <Input
             value={email}
@@ -56,7 +58,7 @@ export function ContactManagement() {
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-primary" />
-            ژمارەی مۆبایل
+            {t('contactMgmt.phone')}
           </Label>
           <Input
             value={phone}
@@ -69,7 +71,7 @@ export function ContactManagement() {
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <MapPin className="h-4 w-4 text-primary" />
-            ناونیشان
+            {t('contactMgmt.location')}
           </Label>
           <Input
             value={location}
@@ -81,7 +83,7 @@ export function ContactManagement() {
         <div className="space-y-2">
           <Label className="flex items-center gap-2">
             <Globe className="h-4 w-4 text-primary" />
-            ماڵپەڕ
+            {t('contactMgmt.website')}
           </Label>
           <Input
             value={website}
@@ -95,7 +97,7 @@ export function ContactManagement() {
       <div className="flex justify-end">
         <Button onClick={handleSave}>
           <Save className="h-4 w-4 ml-2" />
-          پاشەکەوتکردن
+          {t('contactMgmt.save')}
         </Button>
       </div>
     </div>
