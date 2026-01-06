@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Staff, SalaryPayment, Department } from '@/types';
 import { toast } from 'sonner';
 import { Tables } from '@/integrations/supabase/types';
+import { StaffSchema, SalaryPaymentSchema, validateInput } from '@/lib/validations';
 
 type DbStaff = Tables<'staff'>;
 type DbSalaryPayment = Tables<'salary_payments'>;
@@ -63,15 +64,22 @@ export function useAddStaff() {
 
   return useMutation({
     mutationFn: async (staff: Omit<Staff, 'id' | 'salaryPayments'>) => {
+      // Validate input
+      const validation = validateInput(StaffSchema, staff);
+      if (!validation.success) {
+        throw new Error((validation as { success: false; errors: string[] }).errors.join(', '));
+      }
+      const validData = (validation as { success: true; data: typeof staff }).data;
+
       const { data, error } = await supabase
         .from('staff')
         .insert({
-          name: staff.name,
-          phone: staff.phone,
-          role: staff.role,
-          department: staff.department || null,
-          salary: staff.salary,
-          join_date: staff.joinDate,
+          name: validData.name.trim(),
+          phone: validData.phone.trim(),
+          role: validData.role,
+          department: validData.department || null,
+          salary: validData.salary,
+          join_date: validData.joinDate,
         })
         .select()
         .single();
@@ -149,15 +157,22 @@ export function useAddSalaryPayment() {
 
   return useMutation({
     mutationFn: async ({ staffId, payment }: { staffId: string; payment: Omit<SalaryPayment, 'id' | 'staffId'> }) => {
+      // Validate payment input
+      const validation = validateInput(SalaryPaymentSchema, payment);
+      if (!validation.success) {
+        throw new Error((validation as { success: false; errors: string[] }).errors.join(', '));
+      }
+      const validPayment = (validation as { success: true; data: typeof payment }).data;
+
       const { error } = await supabase
         .from('salary_payments')
         .insert({
           staff_id: staffId,
-          month: payment.month,
-          year: payment.year,
-          amount: payment.amount,
-          date: payment.date,
-          note: payment.note || null,
+          month: validPayment.month,
+          year: validPayment.year,
+          amount: validPayment.amount,
+          date: validPayment.date,
+          note: validPayment.note?.trim() || null,
         });
 
       if (error) throw error;

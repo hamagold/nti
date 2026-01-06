@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Student, Payment, Year, YearPayment, Department, Room, generateStudentCode } from '@/types';
 import { toast } from 'sonner';
 import { Tables, TablesInsert } from '@/integrations/supabase/types';
-
+import { StudentSchema, PaymentSchema, validateInput } from '@/lib/validations';
 type DbStudent = Tables<'students'>;
 type DbPayment = Tables<'payments'>;
 type DbYearPayment = Tables<'year_payments'>;
@@ -77,20 +77,27 @@ export function useAddStudent() {
 
   return useMutation({
     mutationFn: async (student: Omit<Student, 'id' | 'payments' | 'yearPayments'> & { code: string }) => {
+      // Validate input
+      const validation = validateInput(StudentSchema, student);
+      if (!validation.success) {
+        throw new Error((validation as { success: false; errors: string[] }).errors.join(', '));
+      }
+      const validData = (validation as { success: true; data: typeof student }).data;
+
       const { data, error } = await supabase
         .from('students')
         .insert({
-          code: student.code,
-          name: student.name,
-          phone: student.phone,
-          address: student.address || null,
-          photo_url: student.photo || null,
-          department: student.department,
-          room: student.room,
-          year: student.year,
-          total_fee: student.totalFee,
+          code: validData.code,
+          name: validData.name.trim(),
+          phone: validData.phone.trim(),
+          address: validData.address?.trim() || null,
+          photo_url: validData.photo || null,
+          department: validData.department,
+          room: validData.room,
+          year: validData.year,
+          total_fee: validData.totalFee,
           paid_amount: 0,
-          registration_date: student.registrationDate,
+          registration_date: validData.registrationDate,
         })
         .select()
         .single();
@@ -186,6 +193,13 @@ export function useAddPayment() {
 
   return useMutation({
     mutationFn: async ({ studentId, payment }: { studentId: string; payment: Omit<Payment, 'id' | 'studentId'> }) => {
+      // Validate payment input
+      const validation = validateInput(PaymentSchema, payment);
+      if (!validation.success) {
+        throw new Error((validation as { success: false; errors: string[] }).errors.join(', '));
+      }
+      const validPayment = (validation as { success: true; data: typeof payment }).data;
+
       // Get current student data
       const { data: student, error: fetchError } = await supabase
         .from('students')
@@ -195,16 +209,16 @@ export function useAddPayment() {
 
       if (fetchError) throw fetchError;
 
-      const newPaidAmount = Number(student.paid_amount) + payment.amount;
+      const newPaidAmount = Number(student.paid_amount) + validPayment.amount;
 
       // Insert payment
       const { error: paymentError } = await supabase
         .from('payments')
         .insert({
           student_id: studentId,
-          amount: payment.amount,
-          date: payment.date,
-          note: payment.note || null,
+          amount: validPayment.amount,
+          date: validPayment.date,
+          note: validPayment.note?.trim() || null,
         });
 
       if (paymentError) throw paymentError;
