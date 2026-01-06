@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Eye, UserPlus, RotateCcw, Lock, Loader2 } from 'lucide-react';
+import { Shield, Eye, UserPlus, RotateCcw, RefreshCw, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -74,10 +74,11 @@ const ROLE_INFO: Record<AdminRole, { name: string; icon: typeof Shield; descript
 };
 
 export function RolePermissions() {
-  const { rolePermissions, updatePermissions, resetToDefaults, isLoading } = useRolePermissions();
-  const { currentRole: userRole } = useAuthStore();
+  const { rolePermissions, updatePermissions, resetToDefaults, isLoading, refetch } = useRolePermissions();
+  const { currentRole: userRole, refreshRole } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<AdminRole>('staff');
   const [isSaving, setIsSaving] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   const isSuperAdminUser = userRole === 'superadmin';
   
@@ -131,6 +132,34 @@ export function RolePermissions() {
 
   return (
     <div className="space-y-6">
+      {/* Manual refresh (helps while testing) */}
+      <div className="flex items-center justify-end">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={async () => {
+            setIsRefreshing(true);
+            try {
+              await Promise.all([refetch(), refreshRole()]);
+              toast.success('ڕۆڵ/دەسەڵات نوێ کرایەوە');
+            } catch {
+              toast.error('نەتوانرا نوێبکرێتەوە');
+            } finally {
+              setIsRefreshing(false);
+            }
+          }}
+          disabled={isLoading || isRefreshing}
+          className="gap-2"
+        >
+          {isRefreshing ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          Force refresh role
+        </Button>
+      </div>
+
       {/* Role Selection */}
       <div className="flex flex-wrap gap-2">
         {(Object.keys(ROLE_INFO) as AdminRole[]).map((role) => {
@@ -186,7 +215,7 @@ export function RolePermissions() {
                 {category.permissions.map((permission) => (
                   <div
                     key={permission}
-                    className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser && !isSaving ? 'hover:bg-muted/50' : 'opacity-60'}`}
+                    className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser && !isSaving && !isRefreshing ? 'hover:bg-muted/50' : 'opacity-60'}`}
                   >
                     <Label htmlFor={permission} className={`text-sm ${isSuperAdminUser && !isSaving ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
                       {PERMISSION_LABELS[permission]}
@@ -195,7 +224,7 @@ export function RolePermissions() {
                       id={permission}
                       checked={currentPermissions.includes(permission)}
                       onCheckedChange={() => handleTogglePermission(permission)}
-                      disabled={!isSuperAdminUser || isSaving || isLoading}
+                      disabled={!isSuperAdminUser || isSaving || isLoading || isRefreshing}
                     />
                   </div>
                 ))}
@@ -206,7 +235,7 @@ export function RolePermissions() {
           {/* Actions */}
           {isSuperAdminUser && (
             <div className="flex gap-2 justify-end pt-4 border-t border-border">
-              <Button variant="outline" onClick={handleResetToDefault} disabled={isSaving || isLoading}>
+              <Button variant="outline" onClick={handleResetToDefault} disabled={isSaving || isLoading || isRefreshing}>
                 {isSaving ? (
                   <Loader2 className="h-4 w-4 ml-2 animate-spin" />
                 ) : (

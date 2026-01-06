@@ -1,8 +1,9 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { usePermissions } from '@/hooks/usePermissions';
 import type { Permission } from '@/store/settingsStore';
 import { Loader2 } from 'lucide-react';
+import { Unauthorized } from '@/components/common/Unauthorized';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -11,6 +12,7 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredPermission, fallbackPath }: ProtectedRouteProps) {
+  const navigate = useNavigate();
   const { isAuthenticated, isLoading } = useAuthStore();
   const { hasPermission, permissionsLoading } = usePermissions();
 
@@ -30,7 +32,13 @@ export function ProtectedRoute({ children, requiredPermission, fallbackPath }: P
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {
-    return <Navigate to={fallbackPath ?? '/'} replace />;
+    return (
+      <Unauthorized
+        description="تکایە پەیوەندی بکە بە سوپەر ئەدمین بۆ زیادکردنی دەسەڵات."
+        actionLabel="چوونەوە"
+        onAction={() => navigate(fallbackPath ?? '/', { replace: true })}
+      />
+    );
   }
 
   return <>{children}</>;
