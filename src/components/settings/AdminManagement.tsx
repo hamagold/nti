@@ -204,12 +204,23 @@ export function AdminManagement() {
     if (!deletingId) return;
     
     try {
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', deletingId);
+      // Delete from both user_roles AND admin_profiles tables
+      const [rolesResult, profilesResult] = await Promise.all([
+        supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', deletingId),
+        supabase
+          .from('admin_profiles')
+          .delete()
+          .eq('user_id', deletingId)
+      ]);
 
-      if (error) throw error;
+      if (rolesResult.error) throw rolesResult.error;
+      // Profile deletion error is not critical, but log it
+      if (profilesResult.error) {
+        console.warn('Could not delete admin profile:', profilesResult.error);
+      }
       
       toast({
         title: 'سڕایەوە',

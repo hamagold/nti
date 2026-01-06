@@ -1,10 +1,10 @@
 import { useAuthStore } from '@/store/authStore';
-import { useSettingsStore, Permission, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
+import { useRolePermissions } from './useRolePermissions';
+import { Permission, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
 
 export function usePermissions() {
   const { currentRole, isAuthenticated } = useAuthStore();
-  // IMPORTANT: subscribe to rolePermissions so UI updates immediately after changes
-  const rolePermissions = useSettingsStore((s) => s.rolePermissions);
+  const { rolePermissions } = useRolePermissions();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!isAuthenticated || !currentRole) return false;

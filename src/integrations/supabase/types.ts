@@ -97,6 +97,30 @@ export type Database = {
           },
         ]
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permissions: string[]
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permissions?: string[]
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permissions?: string[]
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       salary_payments: {
         Row: {
           amount: number

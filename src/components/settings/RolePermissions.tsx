@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Shield, Eye, UserPlus, RotateCcw, Lock } from 'lucide-react';
+import { Shield, Eye, UserPlus, RotateCcw, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useSettingsStore, DEFAULT_ROLE_PERMISSIONS, Permission, AdminRole } from '@/store/settingsStore';
+import { Permission, AdminRole, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
+import { useRolePermissions } from '@/hooks/useRolePermissions';
 import { toast } from 'sonner';
 
 export interface RolePermissionConfig {
@@ -73,47 +74,57 @@ const ROLE_INFO: Record<AdminRole, { name: string; icon: typeof Shield; descript
 };
 
 export function RolePermissions() {
-  const { rolePermissions, updateRolePermissions, addActivityLog } = useSettingsStore();
+  const { rolePermissions, updatePermissions, resetToDefaults, isLoading } = useRolePermissions();
   const { currentRole: userRole } = useAuthStore();
   const [selectedRole, setSelectedRole] = useState<AdminRole>('staff');
+  const [isSaving, setIsSaving] = useState(false);
   
   const isSuperAdminUser = userRole === 'superadmin';
   
   // Use stored permissions or defaults
   const currentPermissions = rolePermissions?.[selectedRole] || DEFAULT_ROLE_PERMISSIONS[selectedRole];
   
-  const handleTogglePermission = (permission: Permission) => {
+  const handleTogglePermission = async (permission: Permission) => {
     if (!isSuperAdminUser) {
       toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
       return;
     }
+    
+    setIsSaving(true);
     const isRemoving = currentPermissions.includes(permission);
     const newPermissions = isRemoving
       ? currentPermissions.filter(p => p !== permission)
       : [...currentPermissions, permission];
     
-    updateRolePermissions(selectedRole, newPermissions);
+    const success = await updatePermissions(selectedRole, newPermissions);
+    setIsSaving(false);
     
-    // Show toast with feedback
-    toast.success(
-      isRemoving 
-        ? `${PERMISSION_LABELS[permission]} لابرا لە ${ROLE_INFO[selectedRole].name}`
-        : `${PERMISSION_LABELS[permission]} زیادکرا بۆ ${ROLE_INFO[selectedRole].name}`
-    );
+    if (success) {
+      toast.success(
+        isRemoving 
+          ? `${PERMISSION_LABELS[permission]} لابرا لە ${ROLE_INFO[selectedRole].name}`
+          : `${PERMISSION_LABELS[permission]} زیادکرا بۆ ${ROLE_INFO[selectedRole].name}`
+      );
+    } else {
+      toast.error('نەتوانرا دەسەڵات نوێ بکرێتەوە');
+    }
   };
 
-  const handleResetToDefault = () => {
+  const handleResetToDefault = async () => {
     if (!isSuperAdminUser) {
       toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
       return;
     }
-    updateRolePermissions(selectedRole, DEFAULT_ROLE_PERMISSIONS[selectedRole]);
-    addActivityLog({
-      type: 'settings',
-      description: `گەڕاندنەوەی دەسەڵاتەکانی ${ROLE_INFO[selectedRole].name} بۆ بنچینەیی`,
-      user: 'ئەدمین',
-    });
-    toast.success('دەسەڵاتەکان گەڕێنرانەوە بۆ بنچینەیی');
+    
+    setIsSaving(true);
+    const success = await resetToDefaults(selectedRole);
+    setIsSaving(false);
+    
+    if (success) {
+      toast.success('دەسەڵاتەکان گەڕێنرانەوە بۆ بنچینەیی');
+    } else {
+      toast.error('نەتوانرا دەسەڵاتەکان بگەڕێنرێتەوە');
+    }
   };
 
   const isSuperAdmin = selectedRole === 'superadmin';
@@ -175,16 +186,16 @@ export function RolePermissions() {
                 {category.permissions.map((permission) => (
                   <div
                     key={permission}
-                    className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser ? 'hover:bg-muted/50' : 'opacity-60'}`}
+                    className={`flex items-center justify-between p-3 rounded-lg bg-muted/30 transition-colors ${isSuperAdminUser && !isSaving ? 'hover:bg-muted/50' : 'opacity-60'}`}
                   >
-                    <Label htmlFor={permission} className={`text-sm ${isSuperAdminUser ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                    <Label htmlFor={permission} className={`text-sm ${isSuperAdminUser && !isSaving ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
                       {PERMISSION_LABELS[permission]}
                     </Label>
                     <Switch
                       id={permission}
                       checked={currentPermissions.includes(permission)}
                       onCheckedChange={() => handleTogglePermission(permission)}
-                      disabled={!isSuperAdminUser}
+                      disabled={!isSuperAdminUser || isSaving || isLoading}
                     />
                   </div>
                 ))}
@@ -195,8 +206,12 @@ export function RolePermissions() {
           {/* Actions */}
           {isSuperAdminUser && (
             <div className="flex gap-2 justify-end pt-4 border-t border-border">
-              <Button variant="outline" onClick={handleResetToDefault}>
-                <RotateCcw className="h-4 w-4 ml-2" />
+              <Button variant="outline" onClick={handleResetToDefault} disabled={isSaving || isLoading}>
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 ml-2 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4 ml-2" />
+                )}
                 گەڕانەوە بۆ بنچینەیی
               </Button>
             </div>
