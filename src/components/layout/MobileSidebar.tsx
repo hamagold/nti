@@ -10,7 +10,6 @@ import {
   Settings,
   Building2,
   Receipt,
-  UserPlus,
 } from 'lucide-react';
 import { SheetClose } from '@/components/ui/sheet';
 
@@ -25,18 +24,12 @@ const allMenuItems = [
   { icon: Settings, label: 'ڕێکخستنەکان', path: '/settings', permission: 'view_settings' as const },
 ];
 
-// Editor menu - only add student/staff
-const editorMenuItems = [
-  { icon: UserPlus, label: 'تۆمارکردنی قوتابی', path: '/students/add', permission: 'add_student' as const },
-  { icon: Users, label: 'تۆمارکردنی ستاف', path: '/staff/add', permission: 'add_staff' as const },
-];
-
 export function MobileSidebar() {
   const location = useLocation();
   const { hasPermission } = usePermissions();
 
   // Menu visibility is controlled ONLY by permissions (including for local_staff)
-  const menuItems = [...allMenuItems, ...editorMenuItems].filter(item => hasPermission(item.permission));
+  const menuItems = allMenuItems.filter(item => hasPermission(item.permission));
 
   return (
     <div className="h-full bg-sidebar flex flex-col">

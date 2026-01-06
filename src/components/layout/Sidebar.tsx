@@ -12,7 +12,6 @@ import {
   ChevronRight,
   Building2,
   Receipt,
-  UserPlus,
 } from 'lucide-react';
 
 const allMenuItems = [
@@ -26,19 +25,13 @@ const allMenuItems = [
   { icon: Settings, label: 'ڕێکخستنەکان', path: '/settings', permission: 'view_settings' as const },
 ];
 
-// Editor menu - only add student/staff
-const editorMenuItems = [
-  { icon: UserPlus, label: 'تۆمارکردنی قوتابی', path: '/students/add', permission: 'add_student' as const },
-  { icon: Users, label: 'تۆمارکردنی ستاف', path: '/staff/add', permission: 'add_staff' as const },
-];
-
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { hasPermission } = usePermissions();
 
   // Menu visibility is controlled ONLY by permissions (including for local_staff)
-  const menuItems = [...allMenuItems, ...editorMenuItems].filter(item => hasPermission(item.permission));
+  const menuItems = allMenuItems.filter(item => hasPermission(item.permission));
 
   return (
     <aside
