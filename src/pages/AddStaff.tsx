@@ -3,7 +3,7 @@ import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
 import { Staff as StaffType, DEPARTMENTS, Department } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { LocalizedInput } from '@/components/ui/localized-input';
 import { Label } from '@/components/ui/label';
 import {
   Dialog,
@@ -134,7 +134,7 @@ export default function AddStaff() {
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="name">ناو</Label>
-              <Input
+              <LocalizedInput
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
@@ -142,13 +142,15 @@ export default function AddStaff() {
                 }
                 placeholder="ناوی تەواو"
                 className="bg-muted/50"
+                convertNumbers={false}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone">ژمارەی مۆبایل</Label>
-              <Input
+              <LocalizedInput
                 id="phone"
+                type="tel"
                 value={formData.phone}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, phone: e.target.value }))
@@ -214,9 +216,9 @@ export default function AddStaff() {
 
             <div className="space-y-2">
               <Label htmlFor="salary">مووچە (دینار)</Label>
-              <Input
+              <LocalizedInput
                 id="salary"
-                type="number"
+                inputMode="numeric"
                 value={formData.salary}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, salary: e.target.value }))

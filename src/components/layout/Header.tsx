@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { MobileSidebar } from './MobileSidebar';
 import { useTheme } from '@/hooks/useTheme';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface HeaderProps {
   title: string;
@@ -17,6 +19,7 @@ export function Header({ title, subtitle }: HeaderProps) {
   const { logout, currentUser, currentRole } = useAuthStore();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   const handleLogout = () => {
     logout();
@@ -25,11 +28,11 @@ export function Header({ title, subtitle }: HeaderProps) {
 
   const getRoleName = () => {
     switch (currentRole) {
-      case 'superadmin': return 'سوپەر ئەدمین';
-      case 'admin': return 'ئەدمین';
-      case 'staff': return 'ستاف';
-      case 'local_staff': return 'ستافی ناوخۆ';
-      default: return 'بەکارهێنەر';
+      case 'superadmin': return t('header.superadmin');
+      case 'admin': return t('header.admin');
+      case 'staff': return t('header.staff');
+      case 'local_staff': return t('header.local_staff');
+      default: return t('header.user');
     }
   };
 
@@ -65,10 +68,13 @@ export function Header({ title, subtitle }: HeaderProps) {
         <div className="relative hidden lg:block">
           <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="گەڕان..."
+            placeholder={t('header.search')}
             className="w-48 xl:w-64 pr-10 bg-muted/50 border-0 focus-visible:ring-primary/50"
           />
         </div>
+
+        {/* Language Switcher */}
+        <LanguageSwitcher />
 
         {/* Theme Toggle */}
         <Button
