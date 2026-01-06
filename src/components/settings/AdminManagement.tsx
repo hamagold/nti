@@ -166,21 +166,28 @@ export function AdminManagement() {
 
   const saveEdit = async () => {
     if (!editingId) return;
-    
+
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      // Ensure the user has ONLY ONE role row
+      const { error: deleteError } = await supabase
         .from('user_roles')
-        .update({ role: editRole })
+        .delete()
         .eq('user_id', editingId);
 
-      if (error) throw error;
-      
+      if (deleteError) throw deleteError;
+
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: editingId, role: editRole });
+
+      if (insertError) throw insertError;
+
       toast({
         title: 'نوێکرایەوە',
         description: 'ڕۆڵی ئەدمین گۆڕدرا',
       });
-      
+
       setEditingId(null);
       fetchAdmins(false);
     } catch (error: any) {
@@ -202,31 +209,21 @@ export function AdminManagement() {
 
   const handleDelete = async () => {
     if (!deletingId) return;
-    
-    try {
-      // Delete from both user_roles AND admin_profiles tables
-      const [rolesResult, profilesResult] = await Promise.all([
-        supabase
-          .from('user_roles')
-          .delete()
-          .eq('user_id', deletingId),
-        supabase
-          .from('admin_profiles')
-          .delete()
-          .eq('user_id', deletingId)
-      ]);
 
-      if (rolesResult.error) throw rolesResult.error;
-      // Profile deletion error is not critical, but log it
-      if (profilesResult.error) {
-        console.warn('Could not delete admin profile:', profilesResult.error);
-      }
-      
+    try {
+      // Delete from database AND disable login (deletes the auth user)
+      const { data, error } = await supabase.functions.invoke('delete-admin', {
+        body: { user_id: deletingId },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
       toast({
         title: 'سڕایەوە',
         description: 'ئەدمین سڕایەوە',
       });
-      
+
       setDeleteConfirmOpen(false);
       setDeletingId(null);
       fetchAdmins(false);

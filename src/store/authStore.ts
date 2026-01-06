@@ -35,16 +35,17 @@ export const useAuthStore = create<AuthState>()(
       
       fetchUserRole: async (userId: string): Promise<AppRole | null> => {
         try {
+          // NOTE: user_roles can contain multiple rows historically.
+          // We always take the most recent role.
           const { data, error } = await supabase
             .from('user_roles')
-            .select('role')
+            .select('role, created_at')
             .eq('user_id', userId)
-            .single();
-          
-          if (error || !data) {
-            return null;
-          }
-          
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (error || !data) return null;
           return data.role as AppRole;
         } catch {
           return null;

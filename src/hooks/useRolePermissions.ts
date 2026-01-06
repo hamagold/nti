@@ -43,21 +43,32 @@ export function useRolePermissions() {
 
   const updatePermissions = useCallback(async (role: AdminRole, permissions: Permission[]): Promise<boolean> => {
     if (role === 'superadmin') return false; // Can't modify superadmin
-    
-    try {
-      const { error } = await supabase
-        .from('role_permissions')
-        .update({ permissions })
-        .eq('role', role);
 
-      if (error) throw error;
+    try {
+      // UPDATE first
+      const { data: updated, error: updateError } = await supabase
+        .from('role_permissions')
+        .update({ permissions, updated_at: new Date().toISOString() })
+        .eq('role', role)
+        .select('role');
+
+      if (updateError) throw updateError;
+
+      // If the row doesn't exist (0 rows updated), INSERT it.
+      if (!updated || updated.length === 0) {
+        const { error: insertError } = await supabase
+          .from('role_permissions')
+          .insert({ role, permissions });
+
+        if (insertError) throw insertError;
+      }
 
       // Update local state immediately
       setRolePermissions(prev => ({
         ...prev,
         [role]: permissions,
       }));
-      
+
       return true;
     } catch (error) {
       console.error('Error updating role permissions:', error);
