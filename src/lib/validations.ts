@@ -52,7 +52,11 @@ export const StaffSchema = z.object({
   role: z.enum(['teacher', 'employee'], {
     errorMap: () => ({ message: 'ڕۆڵ پێویستە' }),
   }),
-  department: z.enum(['computer', 'patrol', 'accounting', 'administrator']).optional().nullable(),
+  department: z.union([
+    z.enum(['computer', 'patrol', 'accounting', 'administrator']),
+    z.literal('').transform(() => null),
+    z.null(),
+  ]).optional().nullable(),
   salary: z.number()
     .min(0, 'مووچە نابێت کەمتر لە ٠ بێت')
     .max(100000000, 'مووچە زۆر گەورەیە'),
