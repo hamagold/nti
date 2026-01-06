@@ -16,6 +16,7 @@ import {
 import { format } from 'date-fns';
 import { Search, Receipt, FileText, Eye, Loader2 } from 'lucide-react';
 import { InvoiceViewDialog } from '@/components/invoices/InvoiceViewDialog';
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface PaymentWithStudent {
   id: string;
@@ -37,6 +38,7 @@ export default function Invoices() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPayment, setSelectedPayment] = useState<PaymentWithStudent | null>(null);
   const [viewOpen, setViewOpen] = useState(false);
+  const { t } = useTranslation();
 
   // Get all payments with student info
   const allPayments: PaymentWithStudent[] = students
@@ -65,16 +67,22 @@ export default function Invoices() {
     setViewOpen(true);
   };
 
+  // Get translated department name
+  const getDeptName = (deptId: string) => {
+    const deptKey = `departments.${deptId}` as const;
+    return t(deptKey);
+  };
+
   if (studentsLoading) {
     return (
       <div className="min-h-screen pb-8">
         <Header
-          title="پسولەکان"
-          subtitle="هەموو پسولەکانی پارەدان"
+          title={t('invoices.title')}
+          subtitle={t('invoices.subtitle')}
         />
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">بارکردنی داتا...</p>
+          <p className="text-muted-foreground">{t('invoices.loadingData')}</p>
         </div>
       </div>
     );
@@ -83,8 +91,8 @@ export default function Invoices() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="پسولەکان"
-        subtitle="هەموو پسولەکانی پارەدان"
+        title={t('invoices.title')}
+        subtitle={t('invoices.subtitle')}
       />
 
       <div className="p-8">
@@ -96,7 +104,7 @@ export default function Invoices() {
                 <Receipt className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کۆی پسولەکان</p>
+                <p className="text-sm text-muted-foreground">{t('invoices.totalInvoices')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {allPayments.length}
                 </p>
@@ -110,7 +118,7 @@ export default function Invoices() {
                 <FileText className="h-6 w-6 text-secondary-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کۆی داهات</p>
+                <p className="text-sm text-muted-foreground">{t('invoices.totalRevenue')}</p>
                 <p className="text-2xl font-bold text-success">
                   {formatCurrency(totalAmount)}
                 </p>
@@ -123,7 +131,7 @@ export default function Invoices() {
         <div className="relative max-w-md mb-6">
           <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="گەڕان بۆ قوتابی..."
+            placeholder={t('invoices.searchStudent')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10 bg-card"
@@ -135,13 +143,13 @@ export default function Invoices() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="text-right">ژمارەی پسولە</TableHead>
-                <TableHead className="text-right">قوتابی</TableHead>
-                <TableHead className="text-right">بەش</TableHead>
-                <TableHead className="text-right">بڕ</TableHead>
-                <TableHead className="text-right">بەروار</TableHead>
-                <TableHead className="text-right">تێبینی</TableHead>
-                <TableHead className="text-right">کردار</TableHead>
+                <TableHead className="text-right">{t('invoices.invoiceNumber')}</TableHead>
+                <TableHead className="text-right">{t('invoices.student')}</TableHead>
+                <TableHead className="text-right">{t('invoices.department')}</TableHead>
+                <TableHead className="text-right">{t('invoices.amount')}</TableHead>
+                <TableHead className="text-right">{t('invoices.date')}</TableHead>
+                <TableHead className="text-right">{t('invoices.note')}</TableHead>
+                <TableHead className="text-right">{t('invoices.action')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,7 +157,7 @@ export default function Invoices() {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
                     <Receipt className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">هیچ پسولەیەک نەدۆزرایەوە</p>
+                    <p className="text-muted-foreground">{t('invoices.noInvoices')}</p>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -170,13 +178,13 @@ export default function Invoices() {
                         <div>
                           <p className="font-semibold">{payment.studentName}</p>
                           <p className="text-xs text-muted-foreground">
-                            ژووری {payment.room} - ساڵی {payment.year}
+                            {t('invoices.room')} {payment.room} - {t('invoices.year')} {payment.year}
                           </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {dept.icon} {dept.name}
+                          {dept.icon} {getDeptName(payment.department)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -197,7 +205,7 @@ export default function Invoices() {
                           onClick={() => handleViewInvoice(payment)}
                         >
                           <Eye className="h-4 w-4 ml-1" />
-                          بینین
+                          {t('invoices.view')}
                         </Button>
                       </TableCell>
                     </TableRow>
