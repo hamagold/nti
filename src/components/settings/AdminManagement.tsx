@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Plus, Pencil, Trash2, Save, X, Shield, Eye, UserPlus, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Save, X, Shield, Eye, UserPlus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +32,8 @@ const ROLES: { id: AppRole; name: string; icon: typeof Shield; description: stri
   { id: 'local_staff', name: 'ستافی ناوخۆ', icon: UserPlus, description: 'تەنها تۆمارکردن' },
 ];
 
+const ITEMS_PER_PAGE = 5;
+
 export function AdminManagement() {
   const { toast } = useToast();
   
@@ -49,6 +51,9 @@ export function AdminManagement() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Fetch admins from user_roles and admin_profiles tables - optimized with parallel fetching
   const fetchAdmins = useCallback(async (showLoader = true) => {
@@ -228,6 +233,20 @@ export function AdminManagement() {
     return ROLES.find((r) => r.id === role) || ROLES[2]; // Default to staff
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(admins.length / ITEMS_PER_PAGE);
+  const paginatedAdmins = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return admins.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [admins, currentPage]);
+
+  // Reset to page 1 when admins change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [admins.length, totalPages, currentPage]);
+
   // Skeleton loading for better UX
   const AdminSkeleton = useMemo(() => (
     <div className="space-y-3">
@@ -346,7 +365,7 @@ export function AdminManagement() {
             هیچ ئەدمینێک نەدۆزرایەوە
           </p>
         ) : (
-          admins.map((admin) => {
+          paginatedAdmins.map((admin) => {
             const roleInfo = getRoleInfo(admin.role);
             const RoleIcon = roleInfo.icon;
             
@@ -463,6 +482,46 @@ export function AdminManagement() {
           })
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-4 border-t border-border">
+          <p className="text-sm text-muted-foreground">
+            {admins.length} ئەدمین - لاپەڕەی {currentPage} لە {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "ghost"}
+                  size="sm"
+                  className="w-8 h-8 p-0"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <PasswordConfirmDialog
         open={deleteConfirmOpen}
