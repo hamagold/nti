@@ -1,39 +1,11 @@
 import { useState } from 'react';
-import { Shield, Eye, UserPlus, Save, RotateCcw, Lock } from 'lucide-react';
+import { Shield, Eye, UserPlus, RotateCcw, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSettingsStore, DEFAULT_ROLE_PERMISSIONS, Permission, AdminRole } from '@/store/settingsStore';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
-
-export type Permission = 
-  | 'view_dashboard'
-  | 'view_students'
-  | 'view_staff'
-  | 'view_payments'
-  | 'view_expenses'
-  | 'view_invoices'
-  | 'view_reports'
-  | 'view_settings'
-  | 'add_student'
-  | 'edit_student'
-  | 'delete_student'
-  | 'add_staff'
-  | 'edit_staff'
-  | 'delete_staff'
-  | 'add_payment'
-  | 'add_expense'
-  | 'edit_expense'
-  | 'delete_expense'
-  | 'add_salary'
-  | 'manage_departments'
-  | 'manage_admins'
-  | 'manage_contact'
-  | 'manage_notifications'
-  | 'view_logs';
-
-export type AdminRole = 'superadmin' | 'admin' | 'staff' | 'local_staff';
 
 export interface RolePermissionConfig {
   role: AdminRole;
@@ -93,35 +65,11 @@ const PERMISSION_CATEGORIES = {
   },
 };
 
-// Default permissions for each role
-const DEFAULT_ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
-  superadmin: Object.values(PERMISSION_LABELS).map((_, i) => Object.keys(PERMISSION_LABELS)[i]) as Permission[],
-  admin: [
-    'view_dashboard',
-    'view_students',
-    'view_staff',
-    'view_payments',
-    'view_expenses',
-    'view_invoices',
-    'view_reports',
-    'view_settings',
-    'view_logs',
-  ],
-  staff: [
-    'view_dashboard',
-    'view_students',
-    'add_student',
-    'edit_student',
-    'add_payment',
-    'view_staff',
-    'add_staff',
-    'view_payments',
-    'view_invoices',
-  ],
-  local_staff: [
-    'add_student',
-    'add_staff',
-  ],
+const ROLE_INFO: Record<AdminRole, { name: string; icon: typeof Shield; description: string }> = {
+  superadmin: { name: 'سوپەر ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو - ناتوانرێت بگۆڕدرێت' },
+  admin: { name: 'ئەدمین', icon: Eye, description: 'تەنها بینین - بێ دەستکاری' },
+  staff: { name: 'ستاف', icon: UserPlus, description: 'کارمەندی ناوخۆ' },
+  local_staff: { name: 'ستافی ناوخۆ', icon: UserPlus, description: 'تەنها تۆمارکردن' },
 };
 
 export function RolePermissions() {
@@ -139,11 +87,19 @@ export function RolePermissions() {
       toast.error('تەنها سوپەر ئەدمین دەتوانێت دەسەڵات بگۆڕێت');
       return;
     }
-    const newPermissions = currentPermissions.includes(permission)
+    const isRemoving = currentPermissions.includes(permission);
+    const newPermissions = isRemoving
       ? currentPermissions.filter(p => p !== permission)
       : [...currentPermissions, permission];
     
     updateRolePermissions(selectedRole, newPermissions);
+    
+    // Show toast with feedback
+    toast.success(
+      isRemoving 
+        ? `${PERMISSION_LABELS[permission]} لابرا لە ${ROLE_INFO[selectedRole].name}`
+        : `${PERMISSION_LABELS[permission]} زیادکرا بۆ ${ROLE_INFO[selectedRole].name}`
+    );
   };
 
   const handleResetToDefault = () => {
@@ -158,13 +114,6 @@ export function RolePermissions() {
       user: 'ئەدمین',
     });
     toast.success('دەسەڵاتەکان گەڕێنرانەوە بۆ بنچینەیی');
-  };
-
-  const ROLE_INFO: Record<AdminRole, { name: string; icon: typeof Shield; description: string }> = {
-    superadmin: { name: 'سوپەر ئەدمین', icon: Shield, description: 'دەسەڵاتی تەواو - ناتوانرێت بگۆڕدرێت' },
-    admin: { name: 'ئەدمین', icon: Eye, description: 'تەنها بینین - بێ دەستکاری' },
-    staff: { name: 'ستاف', icon: UserPlus, description: 'کارمەندی ناوخۆ' },
-    local_staff: { name: 'ستافی ناوخۆ', icon: UserPlus, description: 'تەنها تۆمارکردن' },
   };
 
   const isSuperAdmin = selectedRole === 'superadmin';
@@ -258,4 +207,5 @@ export function RolePermissions() {
   );
 }
 
-export { DEFAULT_ROLE_PERMISSIONS, PERMISSION_LABELS };
+export { PERMISSION_LABELS };
+export type { Permission, AdminRole };

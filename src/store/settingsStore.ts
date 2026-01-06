@@ -54,15 +54,18 @@ export interface ActivityLog {
   user: string;
 }
 
+// All permissions list
+const ALL_PERMISSIONS: Permission[] = [
+  'view_dashboard', 'view_students', 'view_staff', 'view_payments', 'view_expenses',
+  'view_invoices', 'view_reports', 'view_settings', 'add_student', 'edit_student',
+  'delete_student', 'add_staff', 'edit_staff', 'delete_staff', 'add_payment',
+  'add_expense', 'edit_expense', 'delete_expense', 'add_salary', 'manage_departments',
+  'manage_admins', 'manage_contact', 'manage_notifications', 'view_logs',
+];
+
 // Default permissions for each role
 const DEFAULT_ROLE_PERMISSIONS: Record<AdminRole, Permission[]> = {
-  superadmin: [
-    'view_dashboard', 'view_students', 'view_staff', 'view_payments', 'view_expenses',
-    'view_invoices', 'view_reports', 'view_settings', 'add_student', 'edit_student',
-    'delete_student', 'add_staff', 'edit_staff', 'delete_staff', 'add_payment',
-    'add_expense', 'edit_expense', 'delete_expense', 'add_salary', 'manage_departments',
-    'manage_admins', 'manage_contact', 'manage_notifications', 'view_logs',
-  ],
+  superadmin: ALL_PERMISSIONS,
   admin: [
     'view_dashboard', 'view_students', 'view_staff', 'view_payments', 'view_expenses',
     'view_invoices', 'view_reports', 'view_settings', 'view_logs',
