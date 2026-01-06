@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { PaymentDialog } from '@/components/payments/PaymentDialog';
 import { useStore } from '@/store/useStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Student, formatCurrency, getDepartmentInfo } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ import { Search, CreditCard, AlertCircle, CheckCircle, Loader2 } from 'lucide-re
 
 export default function Payments() {
   const { students, studentsLoading } = useStore();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -46,12 +48,12 @@ export default function Payments() {
     return (
       <div className="min-h-screen pb-8">
         <Header
-          title="پارەدان"
-          subtitle="بەڕێوەبردنی پارەدان و قەرزەکان"
+          title={t('payments.title')}
+          subtitle={t('payments.subtitle')}
         />
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">بارکردنی داتا...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -60,8 +62,8 @@ export default function Payments() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="پارەدان"
-        subtitle="بەڕێوەبردنی پارەدان و قەرزەکان"
+        title={t('payments.title')}
+        subtitle={t('payments.subtitle')}
       />
 
       <div className="p-8">
@@ -73,7 +75,7 @@ export default function Payments() {
                 <AlertCircle className="h-6 w-6 text-warning" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کۆی قەرزەکان</p>
+                <p className="text-sm text-muted-foreground">{t('dashboard.pendingPayments')}</p>
                 <p className="text-2xl font-bold text-warning">
                   {formatCurrency(totalDebt)}
                 </p>
@@ -87,7 +89,7 @@ export default function Payments() {
                 <CreditCard className="h-6 w-6 text-destructive" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">قوتابی قەرزدار</p>
+                <p className="text-sm text-muted-foreground">{t('common.remaining')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {studentsWithDebt.length}
                 </p>
@@ -101,7 +103,7 @@ export default function Payments() {
                 <CheckCircle className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">تەواوکەر</p>
+                <p className="text-sm text-muted-foreground">{t('common.paid')}</p>
                 <p className="text-2xl font-bold text-foreground">
                   {students.length - studentsWithDebt.length}
                 </p>
@@ -114,7 +116,7 @@ export default function Payments() {
         <div className="relative max-w-md mb-6">
           <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="گەڕان بۆ قوتابی..."
+            placeholder={t('common.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pr-10 bg-card"
@@ -126,12 +128,12 @@ export default function Payments() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead className="text-right">قوتابی</TableHead>
-                <TableHead className="text-right">بەش</TableHead>
-                <TableHead className="text-right">کۆی کرێ</TableHead>
-                <TableHead className="text-right">پارەدراو</TableHead>
-                <TableHead className="text-right">ماوە</TableHead>
-                <TableHead className="text-center">کردار</TableHead>
+                <TableHead className="text-right">{t('students.title')}</TableHead>
+                <TableHead className="text-right">{t('common.department')}</TableHead>
+                <TableHead className="text-right">{t('students.totalFee')}</TableHead>
+                <TableHead className="text-right">{t('common.paid')}</TableHead>
+                <TableHead className="text-right">{t('common.remaining')}</TableHead>
+                <TableHead className="text-center">{t('common.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -139,7 +141,7 @@ export default function Payments() {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
                     <CreditCard className="h-12 w-12 mx-auto mb-3 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">هیچ قوتابیەکی قەرزدار نەدۆزرایەوە</p>
+                    <p className="text-muted-foreground">{t('common.noData')}</p>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -208,7 +210,7 @@ export default function Payments() {
                           className="gradient-primary text-primary-foreground"
                         >
                           <CreditCard className="h-4 w-4 ml-1" />
-                          پارەدان
+                          {t('payments.addPayment')}
                         </Button>
                       </TableCell>
                     </TableRow>

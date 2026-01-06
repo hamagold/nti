@@ -4,6 +4,7 @@ import { DepartmentCard } from '@/components/dashboard/DepartmentCard';
 import { RecentPayments } from '@/components/dashboard/RecentPayments';
 import { useStore } from '@/store/useStore';
 import { DEPARTMENTS, formatCurrency } from '@/types';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   GraduationCap,
   Wallet,
@@ -15,6 +16,7 @@ import {
 
 export default function Dashboard() {
   const { students, staff, expenses, isLoading } = useStore();
+  const { t } = useTranslation();
 
   // Calculate statistics
   const totalStudents = students.length;
@@ -30,12 +32,12 @@ export default function Dashboard() {
     return (
       <div className="min-h-screen pb-8">
         <Header
-          title="داشبۆرد"
-          subtitle={`ساڵی ${currentYear} - پەیمانگای تەکنیکی نیشتمانی`}
+          title={t('dashboard.title')}
+          subtitle={t('dashboard.subtitle')}
         />
         <div className="flex flex-col items-center justify-center py-32">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-muted-foreground">بارکردنی داتا...</p>
+          <p className="text-muted-foreground">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -44,26 +46,26 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="داشبۆرد"
-        subtitle={`ساڵی ${currentYear} - پەیمانگای تەکنیکی نیشتمانی`}
+        title={t('dashboard.title')}
+        subtitle={t('dashboard.subtitle')}
       />
 
       <div className="p-8 space-y-8">
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <StatCard
-            title="کۆی قوتابیان"
+            title={t('dashboard.totalStudents')}
             value={totalStudents.toString()}
-            subtitle="قوتابی تۆمارکراو"
+            subtitle={t('students.title')}
             icon={GraduationCap}
             variant="primary"
             delay={0}
             link="/students"
           />
           <StatCard
-            title="داهاتی وەرگیراو"
+            title={t('dashboard.totalPayments')}
             value={formatCurrency(totalIncome)}
-            subtitle={`لە ${formatCurrency(totalExpected)}`}
+            subtitle={`${t('common.total')}: ${formatCurrency(totalExpected)}`}
             icon={Wallet}
             variant="secondary"
             trend={{ value: 12, isPositive: true }}
@@ -71,9 +73,9 @@ export default function Dashboard() {
             link="/payments"
           />
           <StatCard
-            title="قازانجی خاوێن"
+            title={t('reports.profit')}
             value={formatCurrency(netProfit)}
-            subtitle="دوای خەرجیەکان"
+            subtitle={t('dashboard.totalExpenses')}
             icon={TrendingUp}
             variant="accent"
             trend={{ value: netProfit > 0 ? 8 : -5, isPositive: netProfit > 0 }}
@@ -81,9 +83,9 @@ export default function Dashboard() {
             link="/reports"
           />
           <StatCard
-            title="ستاف"
+            title={t('nav.staff')}
             value={staff.length.toString()}
-            subtitle="مامۆستا و کارمەند"
+            subtitle={`${t('staffRoles.teacher')} & ${t('staffRoles.employee')}`}
             icon={Users}
             variant="success"
             delay={300}
@@ -98,9 +100,9 @@ export default function Dashboard() {
               <Calendar className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">بەشەکان</h2>
+              <h2 className="text-xl font-bold text-foreground">{t('settings.departments')}</h2>
               <p className="text-sm text-muted-foreground">
-                ئاماری بەشەکان و داهات
+                {t('reports.income')}
               </p>
             </div>
           </div>
@@ -134,29 +136,29 @@ export default function Dashboard() {
           {/* Quick Stats */}
           <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up">
             <h3 className="text-lg font-bold text-foreground mb-6">
-              ئاماری گشتی
+              {t('common.total')}
             </h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                <span className="text-muted-foreground">کۆی خەرجیەکان</span>
+                <span className="text-muted-foreground">{t('dashboard.totalExpenses')}</span>
                 <span className="font-bold text-destructive">
                   {formatCurrency(totalExpenses)}
                 </span>
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                <span className="text-muted-foreground">کۆی مووچەکان</span>
+                <span className="text-muted-foreground">{t('common.salary')}</span>
                 <span className="font-bold text-foreground">
                   {formatCurrency(totalSalaries)}
                 </span>
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
-                <span className="text-muted-foreground">قەرزی قوتابیان</span>
+                <span className="text-muted-foreground">{t('dashboard.pendingPayments')}</span>
                 <span className="font-bold text-warning">
                   {formatCurrency(totalExpected - totalIncome)}
                 </span>
               </div>
               <div className="flex items-center justify-between p-4 rounded-xl bg-success/10 border border-success/20">
-                <span className="font-semibold text-success">قازانجی تەواو</span>
+                <span className="font-semibold text-success">{t('reports.profit')}</span>
                 <span className="font-bold text-success text-lg">
                   {formatCurrency(netProfit)}
                 </span>

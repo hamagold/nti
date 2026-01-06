@@ -7,6 +7,7 @@ import { PaymentHistoryDialog } from '@/components/students/PaymentHistoryDialog
 import { YearProgressDialog } from '@/components/students/YearProgressDialog';
 import { useStore } from '@/store/useStore';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Student, DEPARTMENTS, ROOMS, YEARS, Department, Room, Year } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ import { Plus, Search, GraduationCap, Loader2 } from 'lucide-react';
 export default function Students() {
   const { students, deleteStudent, studentsLoading } = useStore();
   const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -95,8 +97,8 @@ export default function Students() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="قوتابیان"
-        subtitle={`${students.length} قوتابی تۆمارکراو`}
+        title={t('students.title')}
+        subtitle={t('students.subtitle')}
       />
 
       <div className="p-8">
@@ -107,7 +109,7 @@ export default function Students() {
             <div className="relative flex-1 min-w-[200px] max-w-md">
               <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="گەڕان بە ناو، کۆد، یان ژمارە..."
+                placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pr-10 bg-card"
@@ -117,10 +119,10 @@ export default function Students() {
             {/* Filters */}
             <Select value={filterDept} onValueChange={setFilterDept}>
               <SelectTrigger className="w-[140px] bg-card">
-                <SelectValue placeholder="بەش" />
+                <SelectValue placeholder={t('common.department')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">هەموو بەشەکان</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
                 {DEPARTMENTS.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.icon} {dept.name}
@@ -131,13 +133,13 @@ export default function Students() {
 
             <Select value={filterRoom} onValueChange={setFilterRoom}>
               <SelectTrigger className="w-[120px] bg-card">
-                <SelectValue placeholder="ژوور" />
+                <SelectValue placeholder={t('common.room')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">هەموو ژوورەکان</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
                 {ROOMS.map((room) => (
                   <SelectItem key={room} value={room}>
-                    ژووری {room}
+                    {t('common.room')} {room}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -145,13 +147,13 @@ export default function Students() {
 
             <Select value={filterYear} onValueChange={setFilterYear}>
               <SelectTrigger className="w-[120px] bg-card">
-                <SelectValue placeholder="ساڵ" />
+                <SelectValue placeholder={t('common.year')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">هەموو ساڵەکان</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
                 {YEARS.map((year) => (
                   <SelectItem key={year} value={year.toString()}>
-                    ساڵی {year}
+                    {t('common.year')} {year}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -159,12 +161,12 @@ export default function Students() {
 
             <Select value={filterPaymentStatus} onValueChange={setFilterPaymentStatus}>
               <SelectTrigger className="w-[140px] bg-card">
-                <SelectValue placeholder="بارودۆخی پارەدان" />
+                <SelectValue placeholder={t('common.status')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">هەموو</SelectItem>
-                <SelectItem value="unpaid">قەرزدار</SelectItem>
-                <SelectItem value="paid">تەواوکردوو</SelectItem>
+                <SelectItem value="all">{t('common.all')}</SelectItem>
+                <SelectItem value="unpaid">{t('common.remaining')}</SelectItem>
+                <SelectItem value="paid">{t('common.paid')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -178,7 +180,7 @@ export default function Students() {
               className="gradient-primary text-primary-foreground shrink-0"
             >
               <Plus className="h-5 w-5 ml-2" />
-              قوتابی نوێ
+              {t('students.addStudent')}
             </Button>
           )}
         </div>
@@ -187,13 +189,13 @@ export default function Students() {
         {studentsLoading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">بارکردنی قوتابیان...</p>
+            <p className="text-muted-foreground">{t('common.loading')}</p>
           </div>
         ) : filteredStudents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <GraduationCap className="h-16 w-16 mb-4 opacity-50" />
-            <p className="text-lg font-medium">هیچ قوتابیەک نەدۆزرایەوە</p>
-            <p className="text-sm">قوتابیەکی نوێ زیاد بکە یان فلتەرەکان بگۆڕە</p>
+            <p className="text-lg font-medium">{t('common.noData')}</p>
+            <p className="text-sm">{t('students.addStudent')}</p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -247,8 +249,8 @@ export default function Students() {
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
         onConfirm={handleDelete}
-        title="سڕینەوەی قوتابی"
-        description="ئەم کردارە ناگەڕێتەوە. تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون."
+        title={t('common.delete')}
+        description={t('messages.confirmDelete')}
       />
     </div>
   );
