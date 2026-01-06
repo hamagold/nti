@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
+import { useTranslation } from '@/hooks/useTranslation';
 import { formatCurrency, DEPARTMENTS, Department } from '@/types';
 import {
   TrendingUp,
@@ -24,6 +25,7 @@ import { Label } from '@/components/ui/label';
 
 export default function Reports() {
   const { students, staff, expenses } = useStore();
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   
   // Filters
@@ -85,8 +87,8 @@ export default function Reports() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="ڕاپۆرتەکان"
-        subtitle={selectedYear === 'all' ? 'ڕاپۆرتی هەموو ساڵەکان' : `ڕاپۆرتی ساڵی ${selectedYear}`}
+        title={t('reports.title')}
+        subtitle={t('reports.subtitle')}
       />
 
       <div className="p-8 space-y-8">
@@ -94,20 +96,20 @@ export default function Reports() {
         <div className="rounded-2xl bg-card p-6 shadow-lg animate-slide-up">
           <div className="flex items-center gap-3 mb-4">
             <Filter className="h-5 w-5 text-primary" />
-            <h3 className="font-bold text-foreground">فلتەرکردن</h3>
+            <h3 className="font-bold text-foreground">{t('common.filter')}</h3>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
             <div className="space-y-2">
-              <Label>ساڵ</Label>
+              <Label>{t('common.year')}</Label>
               <Select
                 value={selectedYear.toString()}
                 onValueChange={(v) => setSelectedYear(v === 'all' ? 'all' : parseInt(v))}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="ساڵ هەڵبژێرە" />
+                  <SelectValue placeholder={t('common.year')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">هەموو ساڵەکان</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   {years.map(year => (
                     <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
@@ -115,16 +117,16 @@ export default function Reports() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>بەش</Label>
+              <Label>{t('common.department')}</Label>
               <Select
                 value={selectedDepartment}
                 onValueChange={(v) => setSelectedDepartment(v as Department | 'all')}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="بەش هەڵبژێرە" />
+                  <SelectValue placeholder={t('common.department')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">هەموو بەشەکان</SelectItem>
+                  <SelectItem value="all">{t('common.all')}</SelectItem>
                   {DEPARTMENTS.map(dept => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.icon} {dept.name}
@@ -142,8 +144,8 @@ export default function Reports() {
               <BarChart3 className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">خولاسەی دارایی</h2>
-              <p className="text-sm text-muted-foreground">ساڵی {currentYear}</p>
+              <h2 className="text-xl font-bold text-foreground">{t('reports.title')}</h2>
+              <p className="text-sm text-muted-foreground">{t('common.year')} {currentYear}</p>
             </div>
           </div>
 
@@ -151,7 +153,7 @@ export default function Reports() {
             <div className="p-6 rounded-xl bg-success/10 border border-success/20">
               <div className="flex items-center gap-3 mb-3">
                 <TrendingUp className="h-5 w-5 text-success" />
-                <span className="text-sm text-success font-medium">داهاتی وەرگیراو</span>
+                <span className="text-sm text-success font-medium">{t('reports.income')}</span>
               </div>
               <p className="text-3xl font-bold text-success">
                 {formatCurrency(totalIncome)}
@@ -161,7 +163,7 @@ export default function Reports() {
             <div className="p-6 rounded-xl bg-warning/10 border border-warning/20">
               <div className="flex items-center gap-3 mb-3">
                 <DollarSign className="h-5 w-5 text-warning" />
-                <span className="text-sm text-warning font-medium">قەرزی قوتابیان</span>
+                <span className="text-sm text-warning font-medium">{t('dashboard.pendingPayments')}</span>
               </div>
               <p className="text-3xl font-bold text-warning">
                 {formatCurrency(totalDebt)}
@@ -171,13 +173,13 @@ export default function Reports() {
             <div className="p-6 rounded-xl bg-destructive/10 border border-destructive/20">
               <div className="flex items-center gap-3 mb-3">
                 <TrendingDown className="h-5 w-5 text-destructive" />
-                <span className="text-sm text-destructive font-medium">کۆی خەرجیەکان</span>
+                <span className="text-sm text-destructive font-medium">{t('dashboard.totalExpenses')}</span>
               </div>
               <p className="text-3xl font-bold text-destructive">
                 {formatCurrency(totalExpenses + totalPaidSalaries)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                خەرجی: {formatCurrency(totalExpenses)} | مووچە: {formatCurrency(totalPaidSalaries)}
+                {t('reports.expense')}: {formatCurrency(totalExpenses)} | {t('common.salary')}: {formatCurrency(totalPaidSalaries)}
               </p>
             </div>
 
@@ -189,14 +191,14 @@ export default function Reports() {
                   <TrendingDown className="h-5 w-5 text-destructive" />
                 )}
                 <span className={`text-sm font-medium ${netProfit >= 0 ? 'text-primary' : 'text-destructive'}`}>
-                  قازانجی خاوێن
+                  {t('reports.profit')}
                 </span>
               </div>
               <p className={`text-3xl font-bold ${netProfit >= 0 ? 'text-primary' : 'text-destructive'}`}>
                 {formatCurrency(netProfit)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                %{profitPercentage} لە داهات
+                %{profitPercentage}
               </p>
             </div>
           </div>
@@ -209,8 +211,8 @@ export default function Reports() {
               <PieChart className="h-6 w-6 text-secondary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">ئاماری بەشەکان</h2>
-              <p className="text-sm text-muted-foreground">بەراوردی بەشەکان</p>
+              <h2 className="text-xl font-bold text-foreground">{t('settings.departments')}</h2>
+              <p className="text-sm text-muted-foreground">{t('reports.subtitle')}</p>
             </div>
           </div>
 
@@ -249,15 +251,15 @@ export default function Reports() {
 
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
-                    <p className="text-muted-foreground">کۆی چاوەڕوان</p>
+                    <p className="text-muted-foreground">{t('common.total')}</p>
                     <p className="font-semibold">{formatCurrency(dept.expected)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">وەرگیراو</p>
+                    <p className="text-muted-foreground">{t('common.paid')}</p>
                     <p className="font-semibold text-success">{formatCurrency(dept.income)}</p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground">ماوە</p>
+                    <p className="text-muted-foreground">{t('common.remaining')}</p>
                     <p className="font-semibold text-warning">{formatCurrency(dept.debt)}</p>
                   </div>
                 </div>
@@ -273,11 +275,11 @@ export default function Reports() {
               <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <GraduationCap className="h-5 w-5 text-primary" />
               </div>
-              <span className="font-semibold">قوتابیان</span>
+              <span className="font-semibold">{t('students.title')}</span>
             </div>
             <p className="text-4xl font-bold text-foreground mb-2">{totalStudents}</p>
             <p className="text-sm text-muted-foreground">
-              کۆی داهاتی چاوەڕوان: {formatCurrency(totalExpected)}
+              {t('common.total')}: {formatCurrency(totalExpected)}
             </p>
           </div>
 
@@ -286,12 +288,12 @@ export default function Reports() {
               <div className="h-10 w-10 rounded-xl bg-secondary/10 flex items-center justify-center">
                 <Users className="h-5 w-5 text-secondary" />
               </div>
-              <span className="font-semibold">ستاف</span>
+              <span className="font-semibold">{t('nav.staff')}</span>
             </div>
             <p className="text-4xl font-bold text-foreground mb-2">{staff.length}</p>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>مووچەی دراو: <span className="text-success font-semibold">{formatCurrency(totalPaidSalaries)}</span></p>
-              <p>مووچەی مانگانە: {formatCurrency(totalMonthlyExpectedSalaries)}</p>
+              <p>{t('common.paid')}: <span className="text-success font-semibold">{formatCurrency(totalPaidSalaries)}</span></p>
+              <p>{t('common.salary')}: {formatCurrency(totalMonthlyExpectedSalaries)}</p>
             </div>
           </div>
 
@@ -300,13 +302,13 @@ export default function Reports() {
               <div className="h-10 w-10 rounded-xl bg-destructive/10 flex items-center justify-center">
                 <Building2 className="h-5 w-5 text-destructive" />
               </div>
-              <span className="font-semibold">خەرجیەکان</span>
+              <span className="font-semibold">{t('expenses.title')}</span>
             </div>
             <p className="text-4xl font-bold text-foreground mb-2">
               {expenses.length}
             </p>
             <p className="text-sm text-muted-foreground">
-              کۆی خەرجی: {formatCurrency(totalExpenses)}
+              {t('common.total')}: {formatCurrency(totalExpenses)}
             </p>
           </div>
         </div>
