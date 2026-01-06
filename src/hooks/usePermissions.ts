@@ -3,13 +3,13 @@ import { useSettingsStore, Permission, AdminRole, DEFAULT_ROLE_PERMISSIONS } fro
 
 export function usePermissions() {
   const { currentRole, isAuthenticated } = useAuthStore();
-  const { rolePermissions } = useSettingsStore();
+  const { getRolePermissions } = useSettingsStore();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!isAuthenticated || !currentRole) return false;
     
-    // Get permissions from stored config or defaults
-    const permissions = rolePermissions?.[currentRole] || DEFAULT_ROLE_PERMISSIONS[currentRole];
+    // Use the store's getter function which handles both stored and default permissions
+    const permissions = getRolePermissions(currentRole);
     return permissions?.includes(permission) ?? false;
   };
 
@@ -33,6 +33,10 @@ export function usePermissions() {
     return hasPermission(`manage_${setting}` as Permission);
   };
 
+  const canViewLogs = (): boolean => {
+    return hasPermission('view_logs');
+  };
+
   const isSuperAdmin = currentRole === 'superadmin';
   const isAdmin = currentRole === 'admin';
   const isStaff = currentRole === 'staff';
@@ -45,6 +49,7 @@ export function usePermissions() {
     canEdit,
     canDelete,
     canManage,
+    canViewLogs,
     isSuperAdmin,
     isAdmin,
     isStaff,
