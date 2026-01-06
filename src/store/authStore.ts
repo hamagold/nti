@@ -20,6 +20,7 @@ interface AuthState {
   setSession: (session: Session | null) => void;
   initialize: () => Promise<void>;
   fetchUserRole: (userId: string) => Promise<AppRole | null>;
+  refreshRole: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -50,6 +51,23 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           return null;
         }
+      },
+
+      refreshRole: async () => {
+        const session = get().session ?? (await supabase.auth.getSession()).data.session;
+        if (!session?.user?.id) return;
+
+        const role = await get().fetchUserRole(session.user.id);
+        const adminRole = role === 'superadmin' ? 'superadmin'
+          : role === 'admin' ? 'admin'
+          : role === 'staff' ? 'staff'
+          : role === 'local_staff' ? 'local_staff'
+          : 'staff';
+
+        set({
+          currentRole: adminRole as AdminRole,
+          appRole: role || 'user',
+        });
       },
       
       login: async (email: string, password: string) => {

@@ -33,13 +33,10 @@ const editorMenuItems = [
 
 export function MobileSidebar() {
   const location = useLocation();
-  const { hasPermission, isLocalStaff } = usePermissions();
+  const { hasPermission } = usePermissions();
 
-  // For local_staff, show only add student/staff pages
-  // For others, show menu items based on permissions
-  const menuItems = isLocalStaff
-    ? editorMenuItems
-    : allMenuItems.filter(item => hasPermission(item.permission));
+  // Menu visibility is controlled ONLY by permissions (including for local_staff)
+  const menuItems = [...allMenuItems, ...editorMenuItems].filter(item => hasPermission(item.permission));
 
   return (
     <div className="h-full bg-sidebar flex flex-col">
