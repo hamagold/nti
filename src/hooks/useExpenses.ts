@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/types';
 import { toast } from 'sonner';
 import { Tables } from '@/integrations/supabase/types';
+import { ExpenseSchema, validateInput } from '@/lib/validations';
 
 type DbExpense = Tables<'expenses'>;
 
@@ -35,13 +36,20 @@ export function useAddExpense() {
 
   return useMutation({
     mutationFn: async (expense: Omit<Expense, 'id'>) => {
+      // Validate input
+      const validation = validateInput(ExpenseSchema, expense);
+      if (!validation.success) {
+        throw new Error((validation as { success: false; errors: string[] }).errors.join(', '));
+      }
+      const validData = (validation as { success: true; data: typeof expense }).data;
+
       const { data, error } = await supabase
         .from('expenses')
         .insert({
-          type: expense.type,
-          amount: expense.amount,
-          date: expense.date,
-          note: expense.note || null,
+          type: validData.type,
+          amount: validData.amount,
+          date: validData.date,
+          note: validData.note?.trim() || null,
         })
         .select()
         .single();
