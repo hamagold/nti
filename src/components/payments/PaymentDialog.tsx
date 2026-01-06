@@ -14,6 +14,8 @@ import {
 import { toast } from 'sonner';
 import { Check, Receipt, Printer } from 'lucide-react';
 import ntiLogo from '@/assets/nti-logo.jpg';
+import { useTranslation } from '@/hooks/useTranslation';
+import { LocalizedInput } from '@/components/ui/localized-input';
 
 interface PaymentDialogProps {
   open: boolean;
@@ -23,6 +25,7 @@ interface PaymentDialogProps {
 
 export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProps) {
   const { addPayment } = useStore();
+  const { t, currentLanguage } = useTranslation();
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [showInvoice, setShowInvoice] = useState(false);
@@ -39,12 +42,12 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
 
     const paymentAmount = parseFloat(amount);
     if (!paymentAmount || paymentAmount <= 0) {
-      toast.error('تکایە بڕێکی دروست بنووسە');
+      toast.error(t('paymentDialog.invalidAmount'));
       return;
     }
 
     if (paymentAmount > remainingAmount) {
-      toast.error('بڕی پارە لە قەرزەکە زیاترە');
+      toast.error(t('paymentDialog.amountExceedsDebt'));
       return;
     }
 
@@ -59,7 +62,7 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
     addPayment(student.id, payment);
     setLastPayment(payment);
     setShowInvoice(true);
-    toast.success('پارەدان بە سەرکەوتوویی تۆمار کرا');
+    toast.success(t('paymentDialog.paymentRecorded'));
   };
 
   const handleClose = () => {
@@ -82,7 +85,7 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
       <html dir="rtl" lang="ku">
       <head>
         <meta charset="UTF-8">
-        <title>پسولەی پارەدان - ${student.name}</title>
+        <title>${t('paymentDialog.paymentReceipt')} - ${student.name}</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
           * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -158,7 +161,7 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            {showInvoice ? 'پسولەی پارەدان' : 'تۆمارکردنی پارەدان'}
+            {showInvoice ? t('paymentDialog.paymentReceipt') : t('paymentDialog.recordPayment')}
           </DialogTitle>
         </DialogHeader>
 
@@ -171,13 +174,13 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
                 <div className="header-right">
                   <img src={ntiLogo} alt="NTI Logo" className="logo" />
                   <div>
-                    <div className="institute-name">پەیمانگای تەکنیکی نیشتمانی</div>
+                    <div className="institute-name">{t('login.instituteName')}</div>
                     <div className="institute-sub">National Technical Institute</div>
                     <div className="institute-sub">2013</div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'left' }}>
-                  <div className="invoice-title">پسولەی پارەدان</div>
+                  <div className="invoice-title">{t('paymentDialog.paymentReceipt')}</div>
                   <div className="institute-sub">Payment Receipt</div>
                 </div>
               </div>
@@ -185,44 +188,44 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
               {/* Info Grid */}
               <div className="info-grid">
                 <div className="info-box">
-                  <h3>زانیاری قوتابی</h3>
+                  <h3>{t('paymentDialog.studentInfo')}</h3>
                   <div className="info-row">
-                    <span className="info-label">کۆد:</span>
+                    <span className="info-label">{t('common.code')}:</span>
                     <span className="code">{student.code}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">ناو:</span>
+                    <span className="info-label">{t('common.name')}:</span>
                     <span className="info-value">{student.name}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">ژمارەی مۆبایل:</span>
+                    <span className="info-label">{t('common.phone')}:</span>
                     <span>{student.phone}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">بەش:</span>
+                    <span className="info-label">{t('common.department')}:</span>
                     <span>{department.icon} {department.name}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">ژوور:</span>
-                    <span>ژووری {student.room}</span>
+                    <span className="info-label">{t('common.room')}:</span>
+                    <span>{t('common.room')} {student.room}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">ساڵ:</span>
-                    <span>ساڵی {student.year}</span>
+                    <span className="info-label">{t('common.year')}:</span>
+                    <span>{t('common.year')} {student.year}</span>
                   </div>
                 </div>
                 <div className="info-box">
-                  <h3>زانیاری پسولە</h3>
+                  <h3>{t('paymentDialog.receiptInfo')}</h3>
                   <div className="info-row">
-                    <span className="info-label">ژمارەی پسولە:</span>
+                    <span className="info-label">{t('paymentDialog.receiptNumber')}:</span>
                     <span style={{ fontFamily: 'monospace' }}>{lastPayment.id.substring(0, 8).toUpperCase()}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">بەروار:</span>
+                    <span className="info-label">{t('common.date')}:</span>
                     <span>{new Date(lastPayment.date).toLocaleDateString('ar-IQ')}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">کات:</span>
+                    <span className="info-label">{t('paymentDialog.time')}:</span>
                     <span>{new Date(lastPayment.date).toLocaleTimeString('ar-IQ')}</span>
                   </div>
                 </div>
@@ -233,25 +236,25 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
                 <table>
                   <thead>
                     <tr>
-                      <th>وەسف</th>
-                      <th style={{ textAlign: 'left' }}>بڕ</th>
+                      <th>{t('paymentDialog.description')}</th>
+                      <th style={{ textAlign: 'left' }}>{t('common.amount')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td>کرێی خوێندن (سالانە)</td>
+                      <td>{t('paymentDialog.yearlyFee')}</td>
                       <td style={{ textAlign: 'left' }}>{formatCurrency(student.totalFee)}</td>
                     </tr>
                     <tr>
-                      <td>کۆی پارەدراو پێشتر</td>
+                      <td>{t('paymentDialog.previouslyPaid')}</td>
                       <td style={{ textAlign: 'left' }}>{formatCurrency(student.paidAmount)}</td>
                     </tr>
                     <tr className="amount-row">
-                      <td>بڕی پارەدانی ئێستا</td>
+                      <td>{t('paymentDialog.currentPayment')}</td>
                       <td style={{ textAlign: 'left' }}>{formatCurrency(lastPayment.amount)}</td>
                     </tr>
                     <tr className="remaining-row">
-                      <td>ماوەی قەرز</td>
+                      <td>{t('paymentDialog.remainingDebt')}</td>
                       <td className={remainingAfterPayment > 0 ? 'remaining-positive' : 'remaining-zero'} style={{ textAlign: 'left' }}>
                         {formatCurrency(remainingAfterPayment)}
                       </td>
@@ -263,7 +266,7 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
               {/* Note */}
               {lastPayment.note && (
                 <div className="note-box">
-                  <strong>تێبینی:</strong>
+                  <strong>{t('common.note')}:</strong>
                   <p style={{ marginTop: '5px', color: '#666' }}>{lastPayment.note}</p>
                 </div>
               )}
@@ -272,16 +275,16 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
               <div className="footer">
                 <div className="signatures">
                   <div className="signature">
-                    <p>واژووی وەرگر:</p>
+                    <p>{t('paymentDialog.receiverSignature')}:</p>
                     <div className="signature-line"></div>
                   </div>
                   <div className="signature">
-                    <p>واژووی ژمێریاری:</p>
+                    <p>{t('paymentDialog.accountantSignature')}:</p>
                     <div className="signature-line"></div>
                   </div>
                 </div>
                 <p className="thank-you">
-                  سوپاس بۆ متمانەکەتان بە پەیمانگای تەکنیکی نیشتمانی
+                  {t('paymentDialog.thankYou')}
                 </p>
               </div>
             </div>
@@ -290,10 +293,10 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
             <div className="flex gap-3">
               <Button onClick={handlePrint} variant="outline" className="flex-1">
                 <Printer className="h-4 w-4 ml-2" />
-                چاپکردن
+                {t('paymentDialog.print')}
               </Button>
               <Button onClick={handleClose} className="flex-1 gradient-primary text-primary-foreground">
-                داخستن
+                {t('paymentDialog.close')}
               </Button>
             </div>
           </div>
@@ -317,7 +320,7 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
                   <p className="font-bold">{student.name}</p>
                   <p className="text-xs font-mono text-primary">{student.code}</p>
                   <p className="text-sm text-muted-foreground">
-                    قەرز: <span className="text-destructive font-semibold">{formatCurrency(remainingAmount)}</span>
+                    {t('paymentDialog.debt')}: <span className="text-destructive font-semibold">{formatCurrency(remainingAmount)}</span>
                   </p>
                 </div>
               </div>
@@ -325,18 +328,18 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
 
             {/* Amount Input */}
             <div className="space-y-2">
-              <Label htmlFor="amount">بڕی پارە (دینار)</Label>
-              <Input
+              <Label htmlFor="amount">{t('paymentDialog.amountDinar')}</Label>
+              <LocalizedInput
                 id="amount"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="بڕی پارە بنووسە"
+                placeholder={t('paymentDialog.enterAmount')}
                 className="bg-muted/50 text-lg font-bold"
               />
               {amount && parseFloat(amount) > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  دوای پارەدان قەرز دەبێتە:{' '}
+                  {t('paymentDialog.afterPaymentDebt')}:{' '}
                   <span className={newRemainingAmount > 0 ? 'text-warning' : 'text-success'}>
                     {formatCurrency(Math.max(0, newRemainingAmount))}
                   </span>
@@ -346,12 +349,12 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
 
             {/* Note */}
             <div className="space-y-2">
-              <Label htmlFor="note">تێبینی (ئارەزوومەندانە)</Label>
+              <Label htmlFor="note">{t('paymentDialog.noteOptional')}</Label>
               <Textarea
                 id="note"
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="تێبینی..."
+                placeholder={t('paymentDialog.noteText')}
                 className="bg-muted/50 resize-none"
                 rows={2}
               />
@@ -365,13 +368,13 @@ export function PaymentDialog({ open, onOpenChange, student }: PaymentDialogProp
                 className="flex-1"
                 onClick={handleClose}
               >
-                پاشگەزبوونەوە
+                {t('paymentDialog.back')}
               </Button>
               <Button
                 type="submit"
                 className="flex-1 gradient-primary text-primary-foreground"
               >
-                تۆمارکردن
+                {t('paymentDialog.record')}
               </Button>
             </div>
           </form>

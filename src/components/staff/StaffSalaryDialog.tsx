@@ -12,17 +12,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Check, X, Printer, Banknote } from 'lucide-react';
 import { SalaryReceiptPrint } from './SalaryReceiptPrint';
 import { useReactToPrint } from 'react-to-print';
+import { useTranslation } from '@/hooks/useTranslation';
+import { LocalizedInput } from '@/components/ui/localized-input';
 
 interface StaffSalaryDialogProps {
   staff: StaffType;
@@ -32,6 +27,7 @@ interface StaffSalaryDialogProps {
 
 export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDialogProps) {
   const { addSalaryPayment } = useStore();
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
@@ -59,17 +55,17 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
 
   const handlePaySalary = () => {
     if (!selectedMonth) {
-      toast.error('تکایە مانگێک هەڵبژێرە');
+      toast.error(t('salaryDialog.selectMonth'));
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error('تکایە بڕی مووچە بنوسە');
+      toast.error(t('salaryDialog.enterAmount'));
       return;
     }
 
     if (paidMonths.includes(selectedMonth)) {
-      toast.error('مووچەی ئەم مانگە پێشتر دراوە');
+      toast.error(t('salaryDialog.alreadyPaid'));
       return;
     }
 
@@ -86,7 +82,7 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
     addSalaryPayment(staff.id, payment);
     setLastPayment(payment);
     setShowReceipt(true);
-    toast.success('مووچە بە سەرکەوتوویی درا');
+    toast.success(t('salaryDialog.salaryPaid'));
     setSelectedMonth(null);
     setNote('');
   };
@@ -109,14 +105,14 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3">
             <Banknote className="h-6 w-6 text-primary" />
-            پارەدانی مووچە - {staff.name}
+            {t('salaryDialog.salaryPayment')} - {staff.name}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6 mt-4">
           {/* Year Selector */}
           <div className="flex items-center gap-4">
-            <Label>ساڵ:</Label>
+            <Label>{t('salaryDialog.year')}:</Label>
             <div className="flex gap-2">
               {years.map(year => (
                 <Button
@@ -134,22 +130,22 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-muted/50 rounded-xl p-4 text-center">
-              <p className="text-sm text-muted-foreground">مووچەی مانگانە</p>
+              <p className="text-sm text-muted-foreground">{t('salaryDialog.monthlySalary')}</p>
               <p className="text-lg font-bold text-primary">{formatCurrency(staff.salary)}</p>
             </div>
             <div className="bg-success/10 rounded-xl p-4 text-center">
-              <p className="text-sm text-muted-foreground">دراوە لەم ساڵە</p>
+              <p className="text-sm text-muted-foreground">{t('salaryDialog.paidThisYear')}</p>
               <p className="text-lg font-bold text-success">{formatCurrency(totalPaidThisYear)}</p>
             </div>
             <div className="bg-destructive/10 rounded-xl p-4 text-center">
-              <p className="text-sm text-muted-foreground">مانگی دراو</p>
+              <p className="text-sm text-muted-foreground">{t('salaryDialog.monthsPaid')}</p>
               <p className="text-lg font-bold text-destructive">{paidMonths.length} / 12</p>
             </div>
           </div>
 
           {/* Month Grid */}
           <div>
-            <Label className="mb-3 block">دۆخی مانگەکان:</Label>
+            <Label className="mb-3 block">{t('salaryDialog.monthStatus')}:</Label>
             <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
               {MONTHS.map(month => {
                 const isPaid = paidMonths.includes(month.id);
@@ -190,12 +186,12 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
                           }}
                         >
                           <Printer className="h-3 w-3 ml-1" />
-                          چاپ
+                          {t('salaryDialog.print')}
                         </Button>
                       </div>
                     ) : (
                       <Badge variant="outline" className="text-xs">
-                        نەدراوە
+                        {t('salaryDialog.notPaid')}
                       </Badge>
                     )}
                   </div>
@@ -208,13 +204,13 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
           {selectedMonth && !paidMonths.includes(selectedMonth) && (
             <div className="bg-muted/30 rounded-xl p-4 space-y-4">
               <h4 className="font-bold">
-                پارەدان بۆ: {MONTHS.find(m => m.id === selectedMonth)?.name}
+                {t('salaryDialog.paymentFor')}: {MONTHS.find(m => m.id === selectedMonth)?.name}
               </h4>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="salary-amount">بڕی مووچە</Label>
-                  <Input
+                  <Label htmlFor="salary-amount">{t('salaryDialog.salaryAmount')}</Label>
+                  <LocalizedInput
                     id="salary-amount"
                     type="number"
                     value={amount}
@@ -223,12 +219,12 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="salary-note">تێبینی</Label>
+                  <Label htmlFor="salary-note">{t('salaryDialog.note')}</Label>
                   <Textarea
                     id="salary-note"
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    placeholder="تێبینی (ئارەزوومەندانە)"
+                    placeholder={t('salaryDialog.noteOptional')}
                     className="bg-background h-10 resize-none"
                   />
                 </div>
@@ -239,7 +235,7 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
                 className="w-full gradient-primary text-primary-foreground"
               >
                 <Banknote className="h-5 w-5 ml-2" />
-                پارەدان
+                {t('salaryDialog.pay')}
               </Button>
             </div>
           )}
@@ -249,10 +245,10 @@ export function StaffSalaryDialog({ staff, open, onOpenChange }: StaffSalaryDial
         {showReceipt && lastPayment && (
           <div className="mt-6 border-t pt-6">
             <div className="flex justify-between items-center mb-4">
-              <h4 className="font-bold">پسوولەی مووچە</h4>
+              <h4 className="font-bold">{t('salaryDialog.salaryReceipt')}</h4>
               <Button onClick={() => handlePrint()} variant="outline">
                 <Printer className="h-4 w-4 ml-2" />
-                چاپکردن
+                {t('salaryDialog.print')}
               </Button>
             </div>
             <div ref={printRef} className="print:block">
