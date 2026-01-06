@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Lock, Mail, LogIn } from 'lucide-react';
 import ntiLogo from '@/assets/nti-logo.jpg';
 import { useTranslation } from '@/hooks/useTranslation';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -38,6 +39,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-accent/10 flex items-center justify-center p-4">
+      {/* Language Switcher - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Logo Card */}
         <div className="bg-card rounded-3xl shadow-2xl overflow-hidden animate-scale-in">
