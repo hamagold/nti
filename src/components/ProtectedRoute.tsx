@@ -1,15 +1,20 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
+import { usePermissions } from '@/hooks/usePermissions';
+import type { Permission } from '@/store/settingsStore';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
+  requiredPermission?: Permission;
+  fallbackPath?: string;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
+export function ProtectedRoute({ children, requiredPermission, fallbackPath }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuthStore();
+  const { hasPermission, permissionsLoading } = usePermissions();
 
-  if (isLoading) {
+  if (isLoading || permissionsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -22,6 +27,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <Navigate to={fallbackPath ?? '/'} replace />;
   }
 
   return <>{children}</>;

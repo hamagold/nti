@@ -4,7 +4,7 @@ import { Permission, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
 
 export function usePermissions() {
   const { currentRole, isAuthenticated } = useAuthStore();
-  const { rolePermissions } = useRolePermissions();
+  const { rolePermissions, isLoading: permissionsLoading } = useRolePermissions();
 
   const hasPermission = (permission: Permission): boolean => {
     if (!isAuthenticated || !currentRole) return false;
@@ -45,6 +45,7 @@ export function usePermissions() {
   const isLocalStaff = currentRole === 'local_staff';
 
   return {
+    permissionsLoading,
     hasPermission,
     canView,
     canAdd,
