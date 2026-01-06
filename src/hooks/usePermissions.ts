@@ -1,19 +1,21 @@
 import { useAuthStore } from '@/store/authStore';
-import { useSettingsStore, Permission, AdminRole, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
+import { useSettingsStore, Permission, DEFAULT_ROLE_PERMISSIONS } from '@/store/settingsStore';
 
 export function usePermissions() {
   const { currentRole, isAuthenticated } = useAuthStore();
-  const { getRolePermissions } = useSettingsStore();
+  // IMPORTANT: subscribe to rolePermissions so UI updates immediately after changes
+  const rolePermissions = useSettingsStore((s) => s.rolePermissions);
 
   const hasPermission = (permission: Permission): boolean => {
     if (!isAuthenticated || !currentRole) return false;
-    
-    // Use the store's getter function which handles both stored and default permissions
-    const permissions = getRolePermissions(currentRole);
+
+    const permissions = rolePermissions?.[currentRole] ?? DEFAULT_ROLE_PERMISSIONS[currentRole];
     return permissions?.includes(permission) ?? false;
   };
 
-  const canView = (page: 'dashboard' | 'students' | 'staff' | 'payments' | 'expenses' | 'invoices' | 'reports' | 'settings'): boolean => {
+  const canView = (
+    page: 'dashboard' | 'students' | 'staff' | 'payments' | 'expenses' | 'invoices' | 'reports' | 'settings'
+  ): boolean => {
     return hasPermission(`view_${page}` as Permission);
   };
 
@@ -57,3 +59,4 @@ export function usePermissions() {
     currentRole,
   };
 }
+
