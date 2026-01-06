@@ -13,7 +13,38 @@ serve(async (req) => {
   }
 
   try {
-    // Create Supabase admin client
+    // Get the calling user's JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.error('No authorization header provided')
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - No token provided' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+
+    // Create a regular client to verify the JWT using getClaims
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token)
+    
+    if (claimsError || !claimsData?.claims) {
+      console.error('Invalid authentication:', claimsError)
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const callerUserId = claimsData.claims.sub
+
+    // Create Supabase admin client for privileged operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -25,33 +56,11 @@ serve(async (req) => {
       }
     )
 
-    // ============ AUTHORIZATION CHECK ============
-    // Get the calling user's JWT
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      console.error('No authorization header provided')
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized - No token provided' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user: callerUser }, error: authError } = await supabaseAdmin.auth.getUser(token)
-
-    if (authError || !callerUser) {
-      console.error('Invalid authentication:', authError)
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication token' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
     // Check if caller is superadmin
     const { data: callerRoleData, error: callerRoleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
-      .eq('user_id', callerUser.id)
+      .eq('user_id', callerUserId)
       .maybeSingle()
 
     if (callerRoleError) {
@@ -63,7 +72,7 @@ serve(async (req) => {
     }
 
     if (!callerRoleData || callerRoleData.role !== 'superadmin') {
-      console.error('Unauthorized: User is not superadmin. User ID:', callerUser.id, 'Role:', callerRoleData?.role)
+      console.error('Unauthorized: User is not superadmin. User ID:', callerUserId, 'Role:', callerRoleData?.role)
       return new Response(
         JSON.stringify({ error: 'Only superadmins can create admin accounts' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -124,7 +133,7 @@ serve(async (req) => {
     }
 
     // ============ CREATE USER ============
-    console.log('Creating user:', email, 'with role:', userRole, 'by superadmin:', callerUser.email)
+    console.log('Creating user:', email, 'with role:', userRole, 'by superadmin ID:', callerUserId)
 
     const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
