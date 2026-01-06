@@ -6,6 +6,7 @@ import { ContactManagement } from '@/components/settings/ContactManagement';
 import { ActivityLogView } from '@/components/settings/ActivityLogView';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
 import { RolePermissions } from '@/components/settings/RolePermissions';
+import { useTranslation } from '@/hooks/useTranslation';
 import {
   Building2,
   Users,
@@ -17,11 +18,13 @@ import {
 } from 'lucide-react';
 
 export default function Settings() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="ڕێکخستنەکان"
-        subtitle="ڕێکخستنی سیستەم و زانیاری پەیمانگا"
+        title={t('settings.title')}
+        subtitle={t('settings.subtitle')}
       />
 
       <div className="p-4 md:p-8">
@@ -32,42 +35,42 @@ export default function Settings() {
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Building2 className="h-4 w-4" />
-              <span className="hidden sm:inline">بەشەکان</span>
+              <span className="hidden sm:inline">{t('settings.departmentsTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="admins"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">ئەدمین</span>
+              <span className="hidden sm:inline">{t('settings.adminsTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="contact"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Phone className="h-4 w-4" />
-              <span className="hidden sm:inline">پەیوەندی</span>
+              <span className="hidden sm:inline">{t('settings.contactTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="notifications"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Bell className="h-4 w-4" />
-              <span className="hidden sm:inline">ئاگاداری</span>
+              <span className="hidden sm:inline">{t('settings.notificationsTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="permissions"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <Shield className="h-4 w-4" />
-              <span className="hidden sm:inline">دەسەڵاتەکان</span>
+              <span className="hidden sm:inline">{t('settings.permissionsTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="logs"
               className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
               <History className="h-4 w-4" />
-              <span className="hidden sm:inline">لۆگ</span>
+              <span className="hidden sm:inline">{t('settings.logsTab')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -78,8 +81,8 @@ export default function Settings() {
                   <Building2 className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی بەشەکان</h2>
-                  <p className="text-sm text-muted-foreground">زیادکردن و دەستکاری بەشەکان و کرێی سالانە</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.departmentManagement')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.departmentManagementDesc')}</p>
                 </div>
               </div>
               <DepartmentManagement />
@@ -93,8 +96,8 @@ export default function Settings() {
                   <Users className="h-6 w-6 text-secondary-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی ئەدمین</h2>
-                  <p className="text-sm text-muted-foreground">زیادکردن، دەستکاری پاسۆرد و ڕۆڵ</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.adminManagement')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.adminManagementDesc')}</p>
                 </div>
               </div>
               <AdminManagement />
@@ -108,8 +111,8 @@ export default function Settings() {
                   <Phone className="h-6 w-6 text-accent-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">زانیاری پەیوەندی</h2>
-                  <p className="text-sm text-muted-foreground">ئیمەیل، ژمارەی مۆبایل و ناونیشان</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.contactInfo')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.contactInfoDesc')}</p>
                 </div>
               </div>
               <ContactManagement />
@@ -123,8 +126,8 @@ export default function Settings() {
                   <Bell className="h-6 w-6 text-warning" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">ڕێکخستنی ئاگاداریەکان</h2>
-                  <p className="text-sm text-muted-foreground">ڕێکخستنی ماوەی ئاگاداری بۆ پارەدان</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.notificationSettings')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.notificationSettingsDesc')}</p>
                 </div>
               </div>
               <NotificationSettings />
@@ -138,8 +141,8 @@ export default function Settings() {
                   <Shield className="h-6 w-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">بەڕێوەبردنی دەسەڵاتەکان</h2>
-                  <p className="text-sm text-muted-foreground">دیاریکردنی دەسەڵاتەکانی هەر ڕۆڵ</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.permissionManagement')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.permissionManagementDesc')}</p>
                 </div>
               </div>
               <RolePermissions />
@@ -153,8 +156,8 @@ export default function Settings() {
                   <History className="h-6 w-6 text-muted-foreground" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-foreground">کۆتا گۆرانکاریەکان</h2>
-                  <p className="text-sm text-muted-foreground">لۆگی تەواوی گۆرانکاریەکان</p>
+                  <h2 className="text-xl font-bold text-foreground">{t('settings.recentChanges')}</h2>
+                  <p className="text-sm text-muted-foreground">{t('settings.recentChangesDesc')}</p>
                 </div>
               </div>
               <ActivityLogView />
@@ -169,8 +172,8 @@ export default function Settings() {
               <SettingsIcon className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">دەربارەی سیستەم</h2>
-              <p className="text-sm text-muted-foreground">زانیاری دروستکەر</p>
+              <h2 className="text-xl font-bold text-foreground">{t('settings.aboutSystem')}</h2>
+              <p className="text-sm text-muted-foreground">{t('settings.developerInfo')}</p>
             </div>
           </div>
 
@@ -179,13 +182,13 @@ export default function Settings() {
               <span className="text-3xl">👨‍💻</span>
             </div>
             <h3 className="text-2xl font-bold text-foreground mb-2">
-              محمد سلێمان احمد
+              {t('settings.developerName')}
             </h3>
             <p className="text-muted-foreground">
-              دروستکەری سیستەمی بەڕێوەبردنی پەیمانگای تەکنیکی نیشتمانی
+              {t('settings.developerRole')}
             </p>
             <div className="mt-6 inline-block px-6 py-2 rounded-full bg-muted text-sm text-muted-foreground">
-              وەشان ١.٠.٠
+              {t('settings.version')} ١.٠.٠
             </div>
           </div>
         </div>

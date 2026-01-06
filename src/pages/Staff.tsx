@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { useStore } from '@/store/useStore';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useTranslation } from '@/hooks/useTranslation';
 import { Staff as StaffType, formatCurrency, DEPARTMENTS, Department, MONTHS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +30,7 @@ import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog
 export default function Staff() {
   const { staff, addStaff, updateStaff, deleteStaff, staffLoading } = useStore();
   const { canAdd, canEdit, canDelete, isAdmin } = usePermissions();
+  const { t } = useTranslation();
   const [formOpen, setFormOpen] = useState(false);
   const [editStaff, setEditStaff] = useState<StaffType | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -57,7 +59,7 @@ export default function Staff() {
     e.preventDefault();
 
     if (!formData.name || !formData.phone || !formData.role || !formData.salary) {
-      toast.error('تکایە هەموو خانەکان پڕبکەوە');
+      toast.error(t('staffPage.fillAllFields'));
       return;
     }
 
@@ -72,14 +74,14 @@ export default function Staff() {
 
     if (editStaff) {
       updateStaff(editStaff.id, staffData);
-      toast.success('زانیاری ستاف نوێکرایەوە');
+      toast.success(t('staffPage.updateStaffInfo'));
     } else {
       addStaff({
         id: crypto.randomUUID(),
         ...staffData,
         salaryPayments: [],
       });
-      toast.success('ستاف بە سەرکەوتوویی زیاد کرا');
+      toast.success(t('staffPage.staffAdded'));
     }
 
     setFormOpen(false);
@@ -101,7 +103,7 @@ export default function Staff() {
   const handleDelete = () => {
     if (deleteId) {
       deleteStaff(deleteId);
-      toast.success('ستاف سڕایەوە');
+      toast.success(t('staffPage.staffDeleted'));
       setDeleteId(null);
     }
   };
@@ -125,8 +127,8 @@ export default function Staff() {
   return (
     <div className="min-h-screen pb-8">
       <Header
-        title="ستاف"
-        subtitle="بەڕێوەبردنی مامۆستا و کارمەندەکان"
+        title={t('staffPage.title')}
+        subtitle={t('staffPage.subtitle')}
       />
 
       <div className="p-8">
@@ -138,7 +140,7 @@ export default function Staff() {
                 <GraduationCap className="h-6 w-6 text-primary-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">مامۆستاکان</p>
+                <p className="text-sm text-muted-foreground">{t('staffPage.teachers')}</p>
                 <p className="text-2xl font-bold text-foreground">{teachers.length}</p>
               </div>
             </div>
@@ -150,7 +152,7 @@ export default function Staff() {
                 <Briefcase className="h-6 w-6 text-secondary-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کارمەندەکان</p>
+                <p className="text-sm text-muted-foreground">{t('staffPage.employees')}</p>
                 <p className="text-2xl font-bold text-foreground">{employees.length}</p>
               </div>
             </div>
@@ -162,7 +164,7 @@ export default function Staff() {
                 <Users className="h-6 w-6 text-accent-foreground" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">کۆی مووچەی مانگانە</p>
+                <p className="text-sm text-muted-foreground">{t('staffPage.totalMonthlySalary')}</p>
                 <p className="text-2xl font-bold text-foreground">{formatCurrency(totalSalaries)}</p>
               </div>
             </div>
@@ -174,7 +176,7 @@ export default function Staff() {
                 <Banknote className="h-6 w-6 text-success" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">دراوە لەم ساڵە</p>
+                <p className="text-sm text-muted-foreground">{t('staffPage.paidThisYear')}</p>
                 <p className="text-2xl font-bold text-success">{formatCurrency(totalPaidThisYear)}</p>
               </div>
             </div>
@@ -192,7 +194,7 @@ export default function Staff() {
               className="gradient-primary text-primary-foreground"
             >
               <Plus className="h-5 w-5 ml-2" />
-              ستافی نوێ
+              {t('staffPage.newStaff')}
             </Button>
           </div>
         )}
@@ -201,12 +203,12 @@ export default function Staff() {
         {staffLoading ? (
           <div className="flex flex-col items-center justify-center py-16">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-            <p className="text-muted-foreground">بارکردنی ستاف...</p>
+            <p className="text-muted-foreground">{t('staffPage.loadingStaff')}</p>
           </div>
         ) : staff.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Users className="h-16 w-16 mb-4 opacity-50" />
-            <p className="text-lg font-medium">هیچ ستافێک تۆمار نەکراوە</p>
+            <p className="text-lg font-medium">{t('staffPage.noStaff')}</p>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -232,7 +234,7 @@ export default function Staff() {
                       <div>
                         <p className="font-bold text-foreground">{member.name}</p>
                         <Badge variant={member.role === 'teacher' ? 'default' : 'secondary'}>
-                          {member.role === 'teacher' ? 'مامۆستا' : 'کارمەند'}
+                          {t(`staffRoles.${member.role}`)}
                         </Badge>
                       </div>
                     </div>
@@ -264,19 +266,19 @@ export default function Staff() {
 
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">ژمارەی مۆبایل:</span>
+                      <span className="text-muted-foreground">{t('common.phone')}:</span>
                       <span>{member.phone}</span>
                     </div>
                     {member.department && (
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">بەش:</span>
+                        <span className="text-muted-foreground">{t('common.department')}:</span>
                         <span>
-                          {DEPARTMENTS.find((d) => d.id === member.department)?.name}
+                          {t(`departments.${member.department}`)}
                         </span>
                       </div>
                     )}
                     <div className="flex justify-between pt-2 border-t border-border">
-                      <span className="text-muted-foreground">مووچەی مانگانە:</span>
+                      <span className="text-muted-foreground">{t('staffPage.monthlySalary')}:</span>
                       <span className="font-bold text-primary">
                         {formatCurrency(member.salary)}
                       </span>
@@ -286,7 +288,7 @@ export default function Staff() {
                   {/* Monthly Payment Progress */}
                   <div className="mt-4 pt-4 border-t border-border">
                     <div className="flex justify-between text-sm mb-2">
-                      <span className="text-muted-foreground">مانگی دراو ({currentYear}):</span>
+                      <span className="text-muted-foreground">{t('staffPage.monthsPaid')} ({currentYear}):</span>
                       <span className={paidMonths === 12 ? 'text-success font-bold' : 'text-destructive font-bold'}>
                         {paidMonths} / 12
                       </span>
@@ -309,7 +311,7 @@ export default function Staff() {
                           }}
                         >
                           <Banknote className="h-4 w-4 ml-2" />
-                          پارەدان
+                          {t('staffPage.payment')}
                         </Button>
                       )}
                       <Button
@@ -321,7 +323,7 @@ export default function Staff() {
                         }}
                       >
                         <History className="h-4 w-4 ml-1" />
-                        مێژوو
+                        {t('staffPage.history')}
                       </Button>
                     </div>
                   </div>
@@ -343,26 +345,26 @@ export default function Staff() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editStaff ? 'گۆڕینی زانیاری ستاف' : 'زیادکردنی ستافی نوێ'}
+              {editStaff ? t('staffPage.editStaffInfo') : t('staffPage.addNewStaff')}
             </DialogTitle>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             <div className="space-y-2">
-              <Label htmlFor="name">ناو</Label>
+              <Label htmlFor="name">{t('common.name')}</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="ناوی تەواو"
+                placeholder={t('staffPage.fullName')}
                 className="bg-muted/50"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">ژمارەی مۆبایل</Label>
+              <Label htmlFor="phone">{t('common.phone')}</Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -375,7 +377,7 @@ export default function Staff() {
             </div>
 
             <div className="space-y-2">
-              <Label>ڕۆڵ</Label>
+              <Label>{t('common.role')}</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) =>
@@ -386,18 +388,18 @@ export default function Staff() {
                 }
               >
                 <SelectTrigger className="bg-muted/50">
-                  <SelectValue placeholder="ڕۆڵێک هەڵبژێرە" />
+                  <SelectValue placeholder={t('staffPage.selectRole')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="teacher">مامۆستا</SelectItem>
-                  <SelectItem value="employee">کارمەند</SelectItem>
+                  <SelectItem value="teacher">{t('staffRoles.teacher')}</SelectItem>
+                  <SelectItem value="employee">{t('staffRoles.employee')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             {formData.role === 'teacher' && (
               <div className="space-y-2">
-                <Label>بەش</Label>
+                <Label>{t('common.department')}</Label>
                 <Select
                   value={formData.department}
                   onValueChange={(value) =>
@@ -405,12 +407,12 @@ export default function Staff() {
                   }
                 >
                   <SelectTrigger className="bg-muted/50">
-                    <SelectValue placeholder="بەشێک هەڵبژێرە" />
+                    <SelectValue placeholder={t('staffPage.selectDepartment')} />
                   </SelectTrigger>
                   <SelectContent>
                     {DEPARTMENTS.map((dept) => (
                       <SelectItem key={dept.id} value={dept.id}>
-                        {dept.icon} {dept.name}
+                        {dept.icon} {t(`departments.${dept.id}`)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -419,7 +421,7 @@ export default function Staff() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="salary">مووچە (دینار)</Label>
+              <Label htmlFor="salary">{t('common.salary')} (دینار)</Label>
               <Input
                 id="salary"
                 type="number"
@@ -427,7 +429,7 @@ export default function Staff() {
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, salary: e.target.value }))
                 }
-                placeholder="بڕی مووچە"
+                placeholder={t('staffPage.salaryAmount')}
                 className="bg-muted/50"
               />
             </div>
@@ -438,10 +440,10 @@ export default function Staff() {
                 variant="outline"
                 onClick={() => setFormOpen(false)}
               >
-                پاشگەزبوونەوە
+                {t('common.cancel')}
               </Button>
               <Button type="submit" className="gradient-primary text-primary-foreground">
-                {editStaff ? 'نوێکردنەوە' : 'زیادکردن'}
+                {editStaff ? t('staffPage.update') : t('common.add')}
               </Button>
             </div>
           </form>
@@ -457,20 +459,22 @@ export default function Staff() {
         />
       )}
 
-      {/* Salary History Dialog */}
-      <StaffSalaryHistoryDialog
-        staff={historyStaff}
-        open={!!historyStaff}
-        onOpenChange={(open) => !open && setHistoryStaff(null)}
-      />
+      {/* History Dialog */}
+      {historyStaff && (
+        <StaffSalaryHistoryDialog
+          staff={historyStaff}
+          open={!!historyStaff}
+          onOpenChange={(open) => !open && setHistoryStaff(null)}
+        />
+      )}
 
-      {/* Password Confirmation for Delete */}
+      {/* Delete Confirmation */}
       <PasswordConfirmDialog
         open={!!deleteId}
-        onOpenChange={(open) => !open && setDeleteId(null)}
+        onOpenChange={() => setDeleteId(null)}
         onConfirm={handleDelete}
-        title="سڕینەوەی ستاف"
-        description="ئەم کردارە ناگەڕێتەوە. تکایە پاسۆردی ئەدمین بنوسە بۆ دڵنیابوون."
+        title={t('messages.confirmDelete')}
+        description={t('expenses.actionIrreversible')}
       />
     </div>
   );
