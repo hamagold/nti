@@ -18,6 +18,12 @@ export function DepartmentCard({
 }: DepartmentCardProps) {
   const { t } = useTranslation();
 
+  // Get translated department name
+  const getDeptName = (deptId: string) => {
+    const deptKey = `departments.${deptId}` as const;
+    return t(deptKey);
+  };
+
   return (
     <div
       className="group relative overflow-hidden rounded-2xl bg-card p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-slide-up"
@@ -36,7 +42,7 @@ export function DepartmentCard({
         </div>
         
         <h3 className="text-lg font-bold text-foreground mb-1">
-          {department.name}
+          {getDeptName(department.id)}
         </h3>
         
         <p className="text-sm text-muted-foreground mb-4">
