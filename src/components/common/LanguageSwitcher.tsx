@@ -8,9 +8,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLanguageStore, Language } from '@/store/languageStore';
 import { getLanguageName } from '@/hooks/useTranslation';
+import kurdistanFlag from '@/assets/kurdistan-flag.png';
 
-const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'ku', name: 'کوردی', flag: 'ku' },
+const languages: { code: Language; name: string; flag: string; isImage?: boolean }[] = [
+  { code: 'ku', name: 'کوردی', flag: kurdistanFlag, isImage: true },
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'ar', name: 'العربية', flag: '🇮🇶' },
 ];
@@ -34,7 +35,11 @@ export function LanguageSwitcher() {
               language === lang.code ? 'bg-primary/10 text-primary' : ''
             }`}
           >
-            <span className="text-lg">{lang.flag}</span>
+            {lang.isImage ? (
+              <img src={lang.flag} alt={lang.name} className="w-5 h-4 object-cover rounded-sm" />
+            ) : (
+              <span className="text-lg">{lang.flag}</span>
+            )}
             <span>{lang.name}</span>
           </DropdownMenuItem>
         ))}
