@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useStore } from '@/store/useStore';
 import { Student, Department, Room, Year, DEPARTMENTS, ROOMS, YEARS, generateStudentCode } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -49,9 +49,9 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
   
   const [formData, setFormData] = useState(getInitialFormData());
   
-  // Update form data when editStudent changes
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) {
+  // Update form data when editStudent changes or dialog opens
+  useEffect(() => {
+    if (open) {
       setFormData({
         name: editStudent?.name || '',
         phone: editStudent?.phone || '',
@@ -64,6 +64,14 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
       });
       setPhotoFile(null);
       setPhotoPreview(editStudent?.photo || '');
+    }
+  }, [open, editStudent]);
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      // Reset form when closing
+      setPhotoFile(null);
+      setPhotoPreview('');
     }
     onOpenChange(isOpen);
   };
