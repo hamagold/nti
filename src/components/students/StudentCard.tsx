@@ -2,7 +2,7 @@ import { Student, formatCurrency, getDepartmentInfo } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Phone, MapPin, CreditCard, Trash2, Edit, User, History, ArrowUp } from 'lucide-react';
+import { Phone, MapPin, CreditCard, Trash2, Edit, User, History, ArrowUp, Eye } from 'lucide-react';
 
 interface StudentCardProps {
   student: Student;
@@ -11,6 +11,7 @@ interface StudentCardProps {
   onPayment?: (student: Student) => void;
   onViewHistory?: (student: Student) => void;
   onProgressYear?: (student: Student) => void;
+  onViewInfo?: (student: Student) => void;
   delay?: number;
   isViewOnly?: boolean;
 }
@@ -22,6 +23,7 @@ export function StudentCard({
   onPayment,
   onViewHistory,
   onProgressYear,
+  onViewInfo,
   delay = 0,
   isViewOnly = false,
 }: StudentCardProps) {
@@ -133,6 +135,17 @@ export function StudentCard({
           >
             <CreditCard className="h-4 w-4 ml-1" />
             پارەدان
+          </Button>
+        )}
+        {onViewInfo && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 text-secondary-foreground hover:bg-secondary/10"
+            onClick={() => onViewInfo(student)}
+            title="بینینی زانیاری"
+          >
+            <Eye className="h-4 w-4" />
           </Button>
         )}
         {onViewHistory && (
