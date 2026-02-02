@@ -10,9 +10,9 @@ import { useLanguageStore, Language } from '@/store/languageStore';
 import { getLanguageName } from '@/hooks/useTranslation';
 
 const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'ku', name: 'کوردی', flag: '🇮🇶' },
+  { code: 'ku', name: 'کوردی', flag: 'ku' },
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'ar', name: 'العربية', flag: '🇮🇶' },
 ];
 
 export function LanguageSwitcher() {
