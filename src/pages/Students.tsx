@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { StudentForm } from '@/components/students/StudentForm';
 import { StudentCard } from '@/components/students/StudentCard';
+import { StudentViewDialog } from '@/components/students/StudentViewDialog';
 import { PaymentDialog } from '@/components/payments/PaymentDialog';
 import { PaymentHistoryDialog } from '@/components/students/PaymentHistoryDialog';
 import { YearProgressDialog } from '@/components/students/YearProgressDialog';
@@ -35,6 +36,8 @@ export default function Students() {
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [historyStudent, setHistoryStudent] = useState<Student | null>(null);
   const [progressStudent, setProgressStudent] = useState<Student | null>(null);
+  const [viewStudent, setViewStudent] = useState<Student | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   // Filters
@@ -84,6 +87,11 @@ export default function Students() {
   const handleProgressYear = (student: Student) => {
     setProgressStudent(student);
     setProgressOpen(true);
+  };
+
+  const handleViewInfo = (student: Student) => {
+    setViewStudent(student);
+    setViewOpen(true);
   };
 
   const handleDelete = () => {
@@ -207,6 +215,7 @@ export default function Students() {
                 onDelete={canDelete('student') ? (id) => setDeleteId(id) : undefined}
                 onPayment={canAdd('payment') ? handlePayment : undefined}
                 onViewHistory={handleViewHistory}
+                onViewInfo={handleViewInfo}
                 onProgressYear={canEdit('student') ? handleProgressYear : undefined}
                 delay={index * 50}
                 isViewOnly={isAdmin}
@@ -242,6 +251,13 @@ export default function Students() {
         open={progressOpen}
         onOpenChange={setProgressOpen}
         student={progressStudent}
+      />
+
+      {/* Student View Dialog */}
+      <StudentViewDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        student={viewStudent}
       />
 
       {/* Password Confirmation for Delete */}

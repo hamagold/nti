@@ -100,6 +100,11 @@ export const translations = {
       registrationDate: 'بەرواری تۆمارکردن',
       progressYear: 'پێشکەوتن بۆ ساڵی داهاتوو',
       photo: 'وێنە',
+      viewInfo: 'زانیاری قوتابی',
+      phone: 'ژمارەی مۆبایل',
+      address: 'ناونیشان',
+      paymentInfo: 'زانیاری پارەدان',
+      completed: 'تەواوبوو',
     },
     // Staff
     staffPage: {
