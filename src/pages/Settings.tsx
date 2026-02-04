@@ -6,6 +6,7 @@ import { ContactManagement } from '@/components/settings/ContactManagement';
 import { ActivityLogView } from '@/components/settings/ActivityLogView';
 import { NotificationSettings } from '@/components/settings/NotificationSettings';
 import { RolePermissions } from '@/components/settings/RolePermissions';
+import { DataManagement } from '@/components/settings/DataManagement';
 import { useTranslation } from '@/hooks/useTranslation';
 import {
   Building2,
@@ -15,6 +16,7 @@ import {
   Bell,
   Settings as SettingsIcon,
   Shield,
+  Database,
 } from 'lucide-react';
 
 export default function Settings() {
@@ -64,6 +66,13 @@ export default function Settings() {
             >
               <Shield className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.permissionsTab')}</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="data"
+              className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              <Database className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('dataManagement.dataTab')}</span>
             </TabsTrigger>
             <TabsTrigger
               value="logs"
@@ -147,6 +156,10 @@ export default function Settings() {
               </div>
               <RolePermissions />
             </div>
+          </TabsContent>
+
+          <TabsContent value="data">
+            <DataManagement />
           </TabsContent>
 
           <TabsContent value="logs">
