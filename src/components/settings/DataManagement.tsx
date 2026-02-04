@@ -109,6 +109,8 @@ export function DataManagement() {
 
   const handleExportBackup = async () => {
     try {
+      toast.info(t('dataManagement.preparingBackup') || 'Preparing backup...');
+      
       const [studentsRes, staffRes, paymentsRes, expensesRes, salaryRes, yearPaymentsRes] = await Promise.all([
         supabase.from('students').select('*'),
         supabase.from('staff').select('*'),
@@ -117,6 +119,14 @@ export function DataManagement() {
         supabase.from('salary_payments').select('*'),
         supabase.from('year_payments').select('*'),
       ]);
+
+      // Check for errors
+      if (studentsRes.error) throw studentsRes.error;
+      if (staffRes.error) throw staffRes.error;
+      if (paymentsRes.error) throw paymentsRes.error;
+      if (expensesRes.error) throw expensesRes.error;
+      if (salaryRes.error) throw salaryRes.error;
+      if (yearPaymentsRes.error) throw yearPaymentsRes.error;
 
       const backup = {
         exportDate: new Date().toISOString(),
@@ -131,15 +141,52 @@ export function DataManagement() {
         }
       };
 
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const jsonString = JSON.stringify(backup, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
+      
+      // Create download link
+      const fileName = `nti-backup-${new Date().toISOString().split('T')[0]}.json`;
+      
+      // Use a more reliable download method
+      if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+        // Modern browsers with File System Access API
+        try {
+          const handle = await (window as any).showSaveFilePicker({
+            suggestedName: fileName,
+            types: [{
+              description: 'JSON Files',
+              accept: { 'application/json': ['.json'] },
+            }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(blob);
+          await writable.close();
+          toast.success(t('dataManagement.backupDownloaded'));
+          return;
+        } catch (err) {
+          // User cancelled or API not available, fall through to traditional method
+          if ((err as Error).name === 'AbortError') {
+            return; // User cancelled
+          }
+        }
+      }
+      
+      // Fallback method for older browsers
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `nti-backup-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      
+      // Trigger click
+      link.click();
+      
+      // Cleanup after a delay
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
 
       toast.success(t('dataManagement.backupDownloaded'));
     } catch (error) {
