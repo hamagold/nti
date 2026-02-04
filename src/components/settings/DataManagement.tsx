@@ -290,73 +290,28 @@ export function DataManagement() {
           </CardHeader>
           <CardContent className="space-y-3">
             {dangerItems.map((item) => (
-              <AlertDialog key={item.type}>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    disabled={isDeleting}
-                  >
-                    <item.icon className="h-4 w-4 me-2" />
-                    {item.label}
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-destructive flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5" />
-                      {t('dataManagement.confirmDelete')}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t('dataManagement.deleteWarning', { type: item.label })}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      onClick={() => handleDeleteRequest(item.type)}
-                    >
-                      {t('common.delete')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                key={item.type}
+                variant="outline"
+                className="w-full justify-start border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                disabled={isDeleting}
+                onClick={() => handleDeleteRequest(item.type)}
+              >
+                <item.icon className="h-4 w-4 me-2" />
+                {item.label}
+              </Button>
             ))}
 
             {/* Delete All Data */}
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="destructive"
-                  className="w-full justify-start mt-4"
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="h-4 w-4 me-2" />
-                  {t('dataManagement.deleteAll')}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-destructive flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    {t('dataManagement.deleteAllTitle')}
-                  </AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t('dataManagement.deleteAllWarning')}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                  <AlertDialogAction
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={() => handleDeleteRequest('all')}
-                  >
-                    {t('dataManagement.deleteAllConfirm')}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <Button
+              variant="destructive"
+              className="w-full justify-start mt-4"
+              disabled={isDeleting}
+              onClick={() => handleDeleteRequest('all')}
+            >
+              <Trash2 className="h-4 w-4 me-2" />
+              {t('dataManagement.deleteAll')}
+            </Button>
           </CardContent>
         </Card>
       )}
