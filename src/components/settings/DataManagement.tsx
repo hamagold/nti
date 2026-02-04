@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   Database, 
   RefreshCw, 
@@ -10,7 +10,6 @@ import {
   Receipt,
   FileText,
   Wallet,
-  BarChart3,
   CheckCircle2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,24 +19,15 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { PasswordConfirmDialog } from '@/components/common/PasswordConfirmDialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 type DeleteType = 'students' | 'payments' | 'expenses' | 'staff' | 'all';
 
 export function DataManagement() {
   const { t } = useTranslation();
   const { isSuperAdmin } = usePermissions();
+  const queryClient = useQueryClient();
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -45,14 +35,71 @@ export function DataManagement() {
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
+  const [isPreparingBackup, setIsPreparingBackup] = useState(false);
+  const [preparedBackup, setPreparedBackup] = useState<{ blob: Blob; fileName: string } | null>(null);
+
+  const throwIfError = (res: { error: unknown } | null | undefined) => {
+    if (res && (res as any).error) throw (res as any).error;
+  };
+
+  const downloadBlob = async (blob: Blob, fileName: string) => {
+    // Prefer File System Access API when available (user gesture friendly)
+    if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+      try {
+        const handle = await (window as any).showSaveFilePicker({
+          suggestedName: fileName,
+          types: [
+            {
+              description: 'JSON Files',
+              accept: { 'application/json': ['.json'] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return;
+      } catch (err) {
+        // User cancelled
+        if ((err as Error)?.name === 'AbortError') return;
+        // fall through to classic method
+      }
+    }
+
+    // Classic download (works best when called directly from a click)
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    // Simulate refresh - in a real app this would invalidate queries
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      await queryClient.invalidateQueries();
+    } finally {
+      // no-op
+    }
     setLastRefresh(new Date());
     setIsRefreshing(false);
     toast.success(t('dataManagement.refreshed'));
   };
+
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = window.setInterval(async () => {
+      await queryClient.invalidateQueries();
+      setLastRefresh(new Date());
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [autoRefresh, queryClient]);
 
   const handleDeleteRequest = (type: DeleteType) => {
     setDeleteType(type);
@@ -69,29 +116,32 @@ export function DataManagement() {
       switch (deleteType) {
         case 'students':
           // Delete payments first (foreign key constraint)
-          await supabase.from('payments').delete().neq('id', '');
-          await supabase.from('year_payments').delete().neq('id', '');
-          await supabase.from('students').delete().neq('id', '');
+          throwIfError(await supabase.from('payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('students').delete().neq('id', ''));
           break;
         case 'payments':
-          await supabase.from('payments').delete().neq('id', '');
+          throwIfError(await supabase.from('payments').delete().neq('id', ''));
+          // Keep derived summaries consistent
+          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
           // Reset paid_amount on students
-          await supabase.from('students').update({ paid_amount: 0 }).neq('id', '');
+          throwIfError(await supabase.from('students').update({ paid_amount: 0 }).neq('id', ''));
           break;
         case 'expenses':
-          await supabase.from('expenses').delete().neq('id', '');
+          throwIfError(await supabase.from('expenses').delete().neq('id', ''));
           break;
         case 'staff':
-          await supabase.from('salary_payments').delete().neq('id', '');
-          await supabase.from('staff').delete().neq('id', '');
+          throwIfError(await supabase.from('salary_payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('staff').delete().neq('id', ''));
           break;
         case 'all':
-          await supabase.from('payments').delete().neq('id', '');
-          await supabase.from('year_payments').delete().neq('id', '');
-          await supabase.from('salary_payments').delete().neq('id', '');
-          await supabase.from('students').delete().neq('id', '');
-          await supabase.from('staff').delete().neq('id', '');
-          await supabase.from('expenses').delete().neq('id', '');
+          // Order matters because of foreign keys
+          throwIfError(await supabase.from('payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('salary_payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('expenses').delete().neq('id', ''));
+          throwIfError(await supabase.from('staff').delete().neq('id', ''));
+          throwIfError(await supabase.from('students').delete().neq('id', ''));
           break;
       }
       
@@ -108,8 +158,24 @@ export function DataManagement() {
   };
 
   const handleExportBackup = async () => {
+    // Two-step export:
+    // 1) Prepare the backup (async)
+    // 2) User clicks again to download (avoids browser blocking async-triggered downloads)
+    if (preparedBackup) {
+      try {
+        await downloadBlob(preparedBackup.blob, preparedBackup.fileName);
+        toast.success(t('dataManagement.backupDownloaded'));
+        setPreparedBackup(null);
+      } catch (error) {
+        console.error('Download error:', error);
+        toast.error(t('dataManagement.backupError'));
+      }
+      return;
+    }
+
     try {
       toast.info(t('dataManagement.preparingBackup') || 'Preparing backup...');
+      setIsPreparingBackup(true);
       
       const [studentsRes, staffRes, paymentsRes, expensesRes, salaryRes, yearPaymentsRes] = await Promise.all([
         supabase.from('students').select('*'),
@@ -144,54 +210,15 @@ export function DataManagement() {
       const jsonString = JSON.stringify(backup, null, 2);
       const blob = new Blob([jsonString], { type: 'application/json;charset=utf-8' });
       
-      // Create download link
       const fileName = `nti-backup-${new Date().toISOString().split('T')[0]}.json`;
-      
-      // Use a more reliable download method
-      if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-        // Modern browsers with File System Access API
-        try {
-          const handle = await (window as any).showSaveFilePicker({
-            suggestedName: fileName,
-            types: [{
-              description: 'JSON Files',
-              accept: { 'application/json': ['.json'] },
-            }],
-          });
-          const writable = await handle.createWritable();
-          await writable.write(blob);
-          await writable.close();
-          toast.success(t('dataManagement.backupDownloaded'));
-          return;
-        } catch (err) {
-          // User cancelled or API not available, fall through to traditional method
-          if ((err as Error).name === 'AbortError') {
-            return; // User cancelled
-          }
-        }
-      }
-      
-      // Fallback method for older browsers
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      link.style.display = 'none';
-      document.body.appendChild(link);
-      
-      // Trigger click
-      link.click();
-      
-      // Cleanup after a delay
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 100);
 
-      toast.success(t('dataManagement.backupDownloaded'));
+      setPreparedBackup({ blob, fileName });
+      toast.success(t('dataManagement.backupReady'));
     } catch (error) {
       console.error('Export error:', error);
       toast.error(t('dataManagement.backupError'));
+    } finally {
+      setIsPreparingBackup(false);
     }
   };
 
@@ -360,6 +387,7 @@ export function DataManagement() {
               variant="outline"
               className="h-auto py-4 flex flex-col items-center gap-2"
               onClick={handleExportBackup}
+              disabled={isPreparingBackup}
             >
               <Download className="h-5 w-5 text-success" />
               <span>{t('dataManagement.backupData')}</span>
@@ -401,6 +429,7 @@ export function DataManagement() {
           <Button
             className="w-full h-12 bg-primary hover:bg-primary/90"
             onClick={handleExportBackup}
+            disabled={isPreparingBackup}
           >
             <Download className="h-5 w-5 me-2" />
             {t('dataManagement.downloadBackup')}
