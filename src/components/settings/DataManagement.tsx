@@ -240,48 +240,59 @@ export function DataManagement() {
           return;
         }
 
-        // Show confirmation dialog before import
         toast.info(t('dataManagement.importStarted'));
         
-        // Import data in order (respecting foreign keys)
-        if (backup.data.students?.length > 0) {
-          for (const student of backup.data.students) {
-            await supabase.from('students').upsert(student, { onConflict: 'id' });
-          }
-        }
-        
-        if (backup.data.staff?.length > 0) {
-          for (const member of backup.data.staff) {
-            await supabase.from('staff').upsert(member, { onConflict: 'id' });
-          }
-        }
-        
-        if (backup.data.payments?.length > 0) {
-          for (const payment of backup.data.payments) {
-            await supabase.from('payments').upsert(payment, { onConflict: 'id' });
-          }
-        }
-        
-        if (backup.data.expenses?.length > 0) {
-          for (const expense of backup.data.expenses) {
-            await supabase.from('expenses').upsert(expense, { onConflict: 'id' });
-          }
-        }
-        
-        if (backup.data.salaryPayments?.length > 0) {
-          for (const salary of backup.data.salaryPayments) {
-            await supabase.from('salary_payments').upsert(salary, { onConflict: 'id' });
-          }
-        }
-        
-        if (backup.data.yearPayments?.length > 0) {
-          for (const yp of backup.data.yearPayments) {
-            await supabase.from('year_payments').upsert(yp, { onConflict: 'id' });
-          }
-        }
+        let importedCount = 0;
+        let errorCount = 0;
 
-        toast.success(t('dataManagement.importSuccess'));
-        window.location.reload();
+        // Helper to upsert with error handling
+        const upsertBatch = async (tableName: 'students' | 'staff' | 'payments' | 'expenses' | 'salary_payments' | 'year_payments', records: any[]) => {
+          if (!records || records.length === 0) return;
+          
+          for (const record of records) {
+            const { error } = await supabase.from(tableName).upsert(record as any, { 
+              onConflict: 'id',
+              ignoreDuplicates: false 
+            });
+            if (error) {
+              console.error(`Import error for ${tableName}:`, error, record);
+              errorCount++;
+            } else {
+              importedCount++;
+            }
+          }
+        };
+
+        // Import data in order (respecting foreign keys)
+        // 1. Students first (no dependencies)
+        await upsertBatch('students', backup.data.students);
+        
+        // 2. Staff (no dependencies)
+        await upsertBatch('staff', backup.data.staff);
+        
+        // 3. Payments (depends on students)
+        await upsertBatch('payments', backup.data.payments);
+        
+        // 4. Expenses (no dependencies)
+        await upsertBatch('expenses', backup.data.expenses);
+        
+        // 5. Salary payments (depends on staff)
+        await upsertBatch('salary_payments', backup.data.salaryPayments);
+        
+        // 6. Year payments (depends on students)
+        await upsertBatch('year_payments', backup.data.yearPayments);
+
+        if (errorCount > 0) {
+          toast.warning(`${t('dataManagement.importSuccess')} (${importedCount} تۆمار، ${errorCount} هەڵە)`);
+        } else if (importedCount > 0) {
+          toast.success(`${t('dataManagement.importSuccess')} (${importedCount} تۆمار)`);
+        } else {
+          toast.info('هیچ تۆمارێک نەدۆزرایەوە بۆ ئیمپۆرت');
+        }
+        
+        // Invalidate queries to refresh data
+        await queryClient.invalidateQueries();
+        
       } catch (error) {
         console.error('Import error:', error);
         toast.error(t('dataManagement.importError'));
