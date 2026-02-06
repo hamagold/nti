@@ -116,32 +116,32 @@ export function DataManagement() {
       switch (deleteType) {
         case 'students':
           // Delete payments first (foreign key constraint)
-          throwIfError(await supabase.from('payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('students').delete().neq('id', ''));
+          throwIfError(await supabase.from('payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('year_payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('students').delete().not('id', 'is', null));
           break;
         case 'payments':
-          throwIfError(await supabase.from('payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('payments').delete().not('id', 'is', null));
           // Keep derived summaries consistent
-          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
+          throwIfError(await supabase.from('year_payments').delete().not('id', 'is', null));
           // Reset paid_amount on students
-          throwIfError(await supabase.from('students').update({ paid_amount: 0 }).neq('id', ''));
+          throwIfError(await supabase.from('students').update({ paid_amount: 0 }).not('id', 'is', null));
           break;
         case 'expenses':
-          throwIfError(await supabase.from('expenses').delete().neq('id', ''));
+          throwIfError(await supabase.from('expenses').delete().not('id', 'is', null));
           break;
         case 'staff':
-          throwIfError(await supabase.from('salary_payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('staff').delete().neq('id', ''));
+          throwIfError(await supabase.from('salary_payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('staff').delete().not('id', 'is', null));
           break;
         case 'all':
           // Order matters because of foreign keys
-          throwIfError(await supabase.from('payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('year_payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('salary_payments').delete().neq('id', ''));
-          throwIfError(await supabase.from('expenses').delete().neq('id', ''));
-          throwIfError(await supabase.from('staff').delete().neq('id', ''));
-          throwIfError(await supabase.from('students').delete().neq('id', ''));
+          throwIfError(await supabase.from('payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('year_payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('salary_payments').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('expenses').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('staff').delete().not('id', 'is', null));
+          throwIfError(await supabase.from('students').delete().not('id', 'is', null));
           break;
       }
       
