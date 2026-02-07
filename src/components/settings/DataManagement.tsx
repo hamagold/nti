@@ -222,6 +222,9 @@ export function DataManagement() {
     }
   };
 
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState('');
+
   const handleImportBackup = () => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -230,62 +233,80 @@ export function DataManagement() {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      setIsImporting(true);
+      setImportProgress('فایل خوێندنەوە...');
+
       try {
         const text = await file.text();
+        console.log('Backup file size:', text.length, 'bytes');
+        
         const backup = JSON.parse(text);
+        console.log('Backup parsed, version:', backup.version);
         
         // Validate backup structure
         if (!backup.data || !backup.version) {
           toast.error(t('dataManagement.invalidBackup'));
+          setIsImporting(false);
           return;
         }
 
-        toast.info(t('dataManagement.importStarted'));
+        toast.info('ئیمپۆرت دەستیپێکرد...');
         
         let importedCount = 0;
         let errorCount = 0;
+        const errors: string[] = [];
 
-        // Helper to upsert with error handling
-        const upsertBatch = async (tableName: 'students' | 'staff' | 'payments' | 'expenses' | 'salary_payments' | 'year_payments', records: any[]) => {
+        // Helper to upsert batch at once
+        const upsertBatch = async (tableName: 'students' | 'staff' | 'payments' | 'expenses' | 'salary_payments' | 'year_payments', records: any[], label: string) => {
           if (!records || records.length === 0) return;
           
-          for (const record of records) {
-            const { error } = await supabase.from(tableName).upsert(record as any, { 
-              onConflict: 'id',
-              ignoreDuplicates: false 
-            });
-            if (error) {
-              console.error(`Import error for ${tableName}:`, error, record);
-              errorCount++;
-            } else {
-              importedCount++;
+          setImportProgress(`${label} (${records.length})...`);
+          console.log(`Importing ${records.length} records into ${tableName}...`);
+          
+          // Upsert all at once (batch)
+          const { data, error } = await supabase.from(tableName).upsert(records as any[], { 
+            onConflict: 'id',
+            ignoreDuplicates: false 
+          }).select('id');
+          
+          if (error) {
+            console.error(`Batch upsert error for ${tableName}:`, error);
+            errors.push(`${label}: ${error.message}`);
+            // Fallback: try one by one
+            console.log(`Falling back to one-by-one for ${tableName}...`);
+            for (const record of records) {
+              const { error: singleError } = await supabase.from(tableName).upsert(record as any, { 
+                onConflict: 'id',
+                ignoreDuplicates: false 
+              });
+              if (singleError) {
+                console.error(`Single upsert error for ${tableName}:`, singleError, record);
+                errorCount++;
+              } else {
+                importedCount++;
+              }
             }
+          } else {
+            importedCount += records.length;
+            console.log(`Successfully imported ${records.length} into ${tableName}`);
           }
         };
 
         // Import data in order (respecting foreign keys)
-        // 1. Students first (no dependencies)
-        await upsertBatch('students', backup.data.students);
-        
-        // 2. Staff (no dependencies)
-        await upsertBatch('staff', backup.data.staff);
-        
-        // 3. Payments (depends on students)
-        await upsertBatch('payments', backup.data.payments);
-        
-        // 4. Expenses (no dependencies)
-        await upsertBatch('expenses', backup.data.expenses);
-        
-        // 5. Salary payments (depends on staff)
-        await upsertBatch('salary_payments', backup.data.salaryPayments);
-        
-        // 6. Year payments (depends on students)
-        await upsertBatch('year_payments', backup.data.yearPayments);
+        await upsertBatch('students', backup.data.students, 'قوتابیان');
+        await upsertBatch('staff', backup.data.staff, 'ستاف');
+        await upsertBatch('payments', backup.data.payments, 'پارەدانەکان');
+        await upsertBatch('expenses', backup.data.expenses, 'خەرجییەکان');
+        await upsertBatch('salary_payments', backup.data.salaryPayments, 'مووچەکان');
+        await upsertBatch('year_payments', backup.data.yearPayments, 'ساڵانە');
+
+        setImportProgress('');
 
         if (errorCount > 0) {
-          toast.warning(`${t('dataManagement.importSuccess')} (${importedCount} تۆمار، ${errorCount} هەڵە)`);
+          toast.warning(`ئیمپۆرت تەواو بوو (${importedCount} تۆمار سەرکەوتوو، ${errorCount} هەڵە)`);
+          console.error('Import errors:', errors);
         } else if (importedCount > 0) {
-          toast.success(`${t('dataManagement.importSuccess')} (${importedCount} تۆمار)`);
+          toast.success(`ئیمپۆرت سەرکەوتوو بوو! (${importedCount} تۆمار)`);
         } else {
           toast.info('هیچ تۆمارێک نەدۆزرایەوە بۆ ئیمپۆرت');
         }
@@ -295,7 +316,10 @@ export function DataManagement() {
         
       } catch (error) {
         console.error('Import error:', error);
-        toast.error(t('dataManagement.importError'));
+        toast.error(`هەڵەی ئیمپۆرت: ${(error as Error).message}`);
+      } finally {
+        setIsImporting(false);
+        setImportProgress('');
       }
     };
     input.click();
@@ -450,9 +474,10 @@ export function DataManagement() {
             variant="outline"
             className="w-full h-12"
             onClick={handleImportBackup}
+            disabled={isImporting}
           >
-            <Upload className="h-5 w-5 me-2" />
-            {t('dataManagement.importBackup')}
+            <Upload className={`h-5 w-5 me-2 ${isImporting ? 'animate-spin' : ''}`} />
+            {isImporting ? importProgress || 'ئیمپۆرتکردن...' : t('dataManagement.importBackup')}
           </Button>
         </CardContent>
       </Card>
