@@ -256,40 +256,39 @@ export function DataManagement() {
         let errorCount = 0;
         const errors: string[] = [];
 
-        // Helper to upsert batch at once
+        // Helper to upsert in small chunks
         const upsertBatch = async (tableName: 'students' | 'staff' | 'payments' | 'expenses' | 'salary_payments' | 'year_payments', records: any[], label: string) => {
           if (!records || records.length === 0) return;
           
           setImportProgress(`${label} (${records.length})...`);
           console.log(`Importing ${records.length} records into ${tableName}...`);
           
-          // Upsert all at once (batch)
-          const { data, error } = await supabase.from(tableName).upsert(records as any[], { 
-            onConflict: 'id',
-            ignoreDuplicates: false 
-          }).select('id');
-          
-          if (error) {
-            console.error(`Batch upsert error for ${tableName}:`, error);
-            errors.push(`${label}: ${error.message}`);
-            // Fallback: try one by one
-            console.log(`Falling back to one-by-one for ${tableName}...`);
-            for (const record of records) {
-              const { error: singleError } = await supabase.from(tableName).upsert(record as any, { 
+          const CHUNK_SIZE = 5;
+          for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+            const chunk = records.slice(i, i + CHUNK_SIZE);
+            setImportProgress(`${label} (${i + 1}-${Math.min(i + CHUNK_SIZE, records.length)} / ${records.length})...`);
+            
+            try {
+              const { error } = await supabase.from(tableName).upsert(chunk as any[], { 
                 onConflict: 'id',
                 ignoreDuplicates: false 
               });
-              if (singleError) {
-                console.error(`Single upsert error for ${tableName}:`, singleError, record);
-                errorCount++;
+              
+              if (error) {
+                console.error(`Chunk upsert error for ${tableName}:`, error);
+                errors.push(`${label}: ${error.message}`);
+                errorCount += chunk.length;
               } else {
-                importedCount++;
+                importedCount += chunk.length;
               }
+            } catch (err) {
+              console.error(`Network error for ${tableName}:`, err);
+              errors.push(`${label}: ${(err as Error).message}`);
+              errorCount += chunk.length;
             }
-          } else {
-            importedCount += records.length;
-            console.log(`Successfully imported ${records.length} into ${tableName}`);
           }
+          
+          console.log(`Done ${tableName}: ${importedCount} imported, ${errorCount} errors`);
         };
 
         // Import data in order (respecting foreign keys)
