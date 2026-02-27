@@ -44,6 +44,7 @@ const mapDbToStudent = (
 export function useStudents() {
   return useQuery({
     queryKey: ['students'],
+    staleTime: 30000, // 30 seconds - prevent excessive refetching
     queryFn: async () => {
       const { data: students, error } = await supabase
         .from('students')

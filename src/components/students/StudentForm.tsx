@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useStore } from '@/store/useStore';
+import { useAddStudent, useUpdateStudent, useStudents } from '@/hooks/useStudents';
 import { Student, Department, Room, Year, DEPARTMENTS, ROOMS, YEARS, generateStudentCode } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +30,9 @@ interface StudentFormProps {
 }
 
 export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: StudentFormProps) {
-  const { students, addStudent, updateStudent } = useStore();
+  const { data: students = [] } = useStudents();
+  const addStudentMutation = useAddStudent();
+  const updateStudentMutation = useUpdateStudent();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -113,13 +115,16 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
         }
         
         // Only update the fields that changed, preserve all other data
-        updateStudent(editStudent.id, {
-          name: formData.name,
-          phone: formData.phone,
-          address: formData.address,
-          photo: photoUrl,
-          department: formData.department as Department,
-          room: formData.room as Room,
+        updateStudentMutation.mutate({
+          id: editStudent.id,
+          updates: {
+            name: formData.name,
+            phone: formData.phone,
+            address: formData.address,
+            photo: photoUrl,
+            department: formData.department as Department,
+            room: formData.room as Room,
+          },
         });
       } else {
         const studentId = crypto.randomUUID();
@@ -154,7 +159,19 @@ export function StudentForm({ open, onOpenChange, editStudent, onSuccess }: Stud
           registrationDate: new Date().toISOString(),
           payments: [],
         };
-        addStudent(newStudent);
+        addStudentMutation.mutate({
+          code: studentCode,
+          name: newStudent.name,
+          phone: newStudent.phone,
+          address: newStudent.address,
+          photo: newStudent.photo,
+          department: newStudent.department,
+          room: newStudent.room,
+          year: newStudent.year,
+          totalFee: newStudent.totalFee,
+          paidAmount: 0,
+          registrationDate: newStudent.registrationDate,
+        });
         onSuccess?.();
       }
       
