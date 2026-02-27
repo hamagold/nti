@@ -1,32 +1,9 @@
+import { AwsClient } from 'https://esm.sh/aws4fetch@1.0.20';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-async function hmacSha256(key: Uint8Array, message: string): Promise<Uint8Array> {
-  const cryptoKey = await crypto.subtle.importKey(
-    'raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-  );
-  const sig = await crypto.subtle.sign('HMAC', cryptoKey, new TextEncoder().encode(message));
-  return new Uint8Array(sig);
-}
-
-async function sha256Hex(data: Uint8Array): Promise<string> {
-  const hash = await crypto.subtle.digest('SHA-256', data);
-  return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function toHex(bytes: Uint8Array): string {
-  return [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function getSignatureKey(key: string, dateStamp: string, region: string, service: string) {
-  const kDate = await hmacSha256(new TextEncoder().encode('AWS4' + key), dateStamp);
-  const kRegion = await hmacSha256(kDate, region);
-  const kService = await hmacSha256(kRegion, service);
-  const kSigning = await hmacSha256(kService, 'aws4_request');
-  return kSigning;
-}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -55,75 +32,21 @@ Deno.serve(async (req) => {
     const fileBytes = new Uint8Array(await file.arrayBuffer());
     const contentType = file.type || 'application/octet-stream';
 
-    // R2 uses path-style: https://<accountId>.r2.cloudflarestorage.com/<bucket>/<key>
-    const host = `${accountId}.r2.cloudflarestorage.com`;
-    const endpoint = `https://${host}`;
-    // URI-encode each path segment for canonical request
-    const encodedKey = objectKey.split('/').map(s => encodeURIComponent(s)).join('/');
-    const canonicalUri = `/${bucketName}/${encodedKey}`;
-    const url = `${endpoint}${canonicalUri}`;
+    const r2 = new AwsClient({
+      accessKeyId,
+      secretAccessKey,
+      region: 'auto',
+      service: 's3',
+    });
 
-    const region = 'auto';
-    const service = 's3';
-
-    const now = new Date();
-    const amzDate = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
-    const dateStamp = amzDate.slice(0, 8);
-
-    // Use UNSIGNED-PAYLOAD for simpler signing
-    const payloadHash = 'UNSIGNED-PAYLOAD';
-
-    // Canonical headers must be sorted by lowercase name
-    const canonicalHeaders = [
-      `content-type:${contentType}`,
-      `host:${host}`,
-      `x-amz-content-sha256:${payloadHash}`,
-      `x-amz-date:${amzDate}`,
-    ].join('\n') + '\n';
-
-    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';
-
-    const canonicalRequest = [
-      'PUT',
-      canonicalUri,
-      '', // empty query string
-      canonicalHeaders,
-      signedHeaders,
-      payloadHash,
-    ].join('\n');
-
-    console.log('=== R2 Upload Debug ===');
-    console.log('Canonical URI:', canonicalUri);
-    console.log('Host:', host);
-    console.log('Date:', amzDate);
-    console.log('Bucket:', bucketName);
-    console.log('AccessKeyId length:', accessKeyId.length);
-    console.log('SecretAccessKey length:', secretAccessKey.length);
-
-    const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-    const canonicalRequestHash = await sha256Hex(new TextEncoder().encode(canonicalRequest));
-
-    const stringToSign = [
-      'AWS4-HMAC-SHA256',
-      amzDate,
-      credentialScope,
-      canonicalRequestHash,
-    ].join('\n');
-
-    const signingKey = await getSignatureKey(secretAccessKey, dateStamp, region, service);
-    const signature = toHex(await hmacSha256(signingKey, stringToSign));
-
-    const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
+    const url = `https://${accountId}.r2.cloudflarestorage.com/${bucketName}/${objectKey}`;
 
     console.log('Uploading to:', url);
 
-    const r2Response = await fetch(url, {
+    const r2Response = await r2.fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': contentType,
-        'x-amz-content-sha256': payloadHash,
-        'x-amz-date': amzDate,
-        'Authorization': authHeader,
       },
       body: fileBytes,
     });
