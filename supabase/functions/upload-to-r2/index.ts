@@ -55,8 +55,8 @@ Deno.serve(async (req) => {
     const fileBytes = new Uint8Array(await file.arrayBuffer());
     const contentHash = await sha256(fileBytes);
 
-    const host = `${bucketName}.${accountId}.r2.cloudflarestorage.com`;
-    const url = `https://${host}/${objectKey}`;
+    const host = `${accountId}.r2.cloudflarestorage.com`;
+    const url = `https://${host}/${bucketName}/${objectKey}`;
     const region = 'auto';
     const service = 's3';
 
@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
 
     const canonicalRequest = [
       'PUT',
-      '/' + objectKey,
+      '/' + bucketName + '/' + objectKey,
       '',
       canonicalHeaders,
       signedHeaders,
