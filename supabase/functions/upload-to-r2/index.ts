@@ -58,7 +58,9 @@ Deno.serve(async (req) => {
     // R2 uses path-style: https://<accountId>.r2.cloudflarestorage.com/<bucket>/<key>
     const host = `${accountId}.r2.cloudflarestorage.com`;
     const endpoint = `https://${host}`;
-    const canonicalUri = `/${bucketName}/${objectKey}`;
+    // URI-encode each path segment for canonical request
+    const encodedKey = objectKey.split('/').map(s => encodeURIComponent(s)).join('/');
+    const canonicalUri = `/${bucketName}/${encodedKey}`;
     const url = `${endpoint}${canonicalUri}`;
 
     const region = 'auto';
@@ -90,9 +92,13 @@ Deno.serve(async (req) => {
       payloadHash,
     ].join('\n');
 
+    console.log('=== R2 Upload Debug ===');
     console.log('Canonical URI:', canonicalUri);
     console.log('Host:', host);
     console.log('Date:', amzDate);
+    console.log('Bucket:', bucketName);
+    console.log('AccessKeyId length:', accessKeyId.length);
+    console.log('SecretAccessKey length:', secretAccessKey.length);
 
     const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
     const canonicalRequestHash = await sha256Hex(new TextEncoder().encode(canonicalRequest));
