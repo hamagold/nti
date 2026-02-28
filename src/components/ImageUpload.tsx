@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Camera, Upload, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { getStorageType, getR2Config } from '@/components/settings/StorageSettings';
+import { fetchStorageSettings } from '@/hooks/useAppSettings';
 
 interface ImageUploadProps {
   onUpload: (url: string) => void;
@@ -19,14 +19,10 @@ export function ImageUpload({ onUpload, folder = 'uploads', className }: ImageUp
   const uploadFile = async (file: File) => {
     setUploading(true);
     try {
-      const storageType = getStorageType();
+      const settings = await fetchStorageSettings();
 
-      if (storageType === 'r2') {
-        const config = getR2Config();
-        if (!config) {
-          toast.error('تکایە ڕێکخستنەکانی R2 پڕبکەوە لە ڕێکخستنەکان');
-          return;
-        }
+      if (settings.storageType === 'r2' && settings.r2Config) {
+        const config = settings.r2Config;
 
         const formData = new FormData();
         formData.append('file', file);
@@ -49,7 +45,6 @@ export function ImageUpload({ onUpload, folder = 'uploads', className }: ImageUp
           throw new Error('No URL returned');
         }
       } else {
-        // Lovable Cloud Storage (Supabase)
         const ext = file.name.split('.').pop();
         const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -59,10 +54,7 @@ export function ImageUpload({ onUpload, folder = 'uploads', className }: ImageUp
 
         if (uploadError) throw uploadError;
 
-        const { data: urlData } = supabase.storage
-          .from('student-photos')
-          .getPublicUrl(fileName);
-
+        const { data: urlData } = supabase.storage.from('student-photos').getPublicUrl(fileName);
         onUpload(urlData.publicUrl);
         toast.success('وێنە بە سەرکەوتوویی بارکرا');
       }
@@ -85,25 +77,11 @@ export function ImageUpload({ onUpload, folder = 'uploads', className }: ImageUp
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFileChange} />
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={uploading}
-        onClick={() => fileRef.current?.click()}
-        className="gap-2"
-      >
+      <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileRef.current?.click()} className="gap-2">
         {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         هەڵبژاردنی وێنە
       </Button>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        disabled={uploading}
-        onClick={() => cameraRef.current?.click()}
-        className="gap-2"
-      >
+      <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => cameraRef.current?.click()} className="gap-2">
         <Camera className="h-4 w-4" />
         کامێرا
       </Button>
