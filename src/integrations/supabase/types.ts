@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          id: string
+          r2_access_key_id: string | null
+          r2_account_id: string | null
+          r2_bucket_name: string | null
+          r2_public_domain: string | null
+          r2_secret_access_key: string | null
+          storage_type: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          r2_access_key_id?: string | null
+          r2_account_id?: string | null
+          r2_bucket_name?: string | null
+          r2_public_domain?: string | null
+          r2_secret_access_key?: string | null
+          storage_type?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          r2_access_key_id?: string | null
+          r2_account_id?: string | null
+          r2_bucket_name?: string | null
+          r2_public_domain?: string | null
+          r2_secret_access_key?: string | null
+          storage_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number

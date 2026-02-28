@@ -5,34 +5,18 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Cloud, HardDrive, Eye, EyeOff, Save } from 'lucide-react';
+import { Cloud, HardDrive, Eye, EyeOff, Save, Loader2 } from 'lucide-react';
+import { useAppSettings, useUpdateAppSettings, type StorageType, type R2Config } from '@/hooks/useAppSettings';
 
-export type StorageType = 'cloud' | 'r2';
+export type { StorageType, R2Config };
 
-export interface R2Config {
-  accountId: string;
-  accessKeyId: string;
-  secretAccessKey: string;
-  bucketName: string;
-  publicDomain: string;
-}
-
-export function getStorageType(): StorageType {
-  return (localStorage.getItem('image_storage_type') as StorageType) || 'cloud';
-}
-
-export function getR2Config(): R2Config | null {
-  const raw = localStorage.getItem('r2_config');
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
-}
+// Re-export helpers for backward compatibility
+export { fetchStorageSettings as getStorageSettingsAsync } from '@/hooks/useAppSettings';
 
 export function StorageSettings() {
-  const [storageType, setStorageType] = useState<StorageType>(getStorageType());
+  const { data: settings, isLoading } = useAppSettings();
+  const updateMutation = useUpdateAppSettings();
+  const [storageType, setStorageType] = useState<StorageType>('cloud');
   const [showSecret, setShowSecret] = useState(false);
   const [r2Config, setR2Config] = useState<R2Config>({
     accountId: '',
@@ -43,25 +27,38 @@ export function StorageSettings() {
   });
 
   useEffect(() => {
-    const saved = getR2Config();
-    if (saved) setR2Config(saved);
-  }, []);
+    if (settings) {
+      setStorageType(settings.storageType);
+      if (settings.r2Config) {
+        setR2Config(settings.r2Config);
+      }
+    }
+  }, [settings]);
 
   const handleSave = () => {
-    localStorage.setItem('image_storage_type', storageType);
     if (storageType === 'r2') {
       if (!r2Config.accountId || !r2Config.accessKeyId || !r2Config.secretAccessKey || !r2Config.bucketName) {
         toast.error('تکایە هەموو خانە پێویستەکان پڕبکەوە');
         return;
       }
-      localStorage.setItem('r2_config', JSON.stringify(r2Config));
     }
-    toast.success('ڕێکخستنەکانی هەڵگرتن پاشەکەوت کران');
+
+    updateMutation.mutate(
+      { storageType, r2Config: storageType === 'r2' ? r2Config : undefined },
+      {
+        onSuccess: () => toast.success('ڕێکخستنەکانی هەڵگرتن پاشەکەوت کران'),
+        onError: () => toast.error('هەڵە لە پاشەکەوتکردن'),
+      }
+    );
   };
 
   const updateR2 = (key: keyof R2Config, value: string) => {
     setR2Config(prev => ({ ...prev, [key]: value }));
   };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -96,69 +93,36 @@ export function StorageSettings() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Account ID</Label>
-              <Input
-                value={r2Config.accountId}
-                onChange={e => updateR2('accountId', e.target.value)}
-                placeholder="ناسنامەی هەژمار"
-                dir="ltr"
-              />
+              <Input value={r2Config.accountId} onChange={e => updateR2('accountId', e.target.value)} placeholder="ناسنامەی هەژمار" dir="ltr" />
             </div>
             <div className="space-y-2">
               <Label>Access Key ID</Label>
-              <Input
-                value={r2Config.accessKeyId}
-                onChange={e => updateR2('accessKeyId', e.target.value)}
-                placeholder="ناسنامەی کلیلی دەستگەیشتن"
-                dir="ltr"
-              />
+              <Input value={r2Config.accessKeyId} onChange={e => updateR2('accessKeyId', e.target.value)} placeholder="ناسنامەی کلیلی دەستگەیشتن" dir="ltr" />
             </div>
             <div className="space-y-2">
               <Label>Secret Access Key</Label>
               <div className="relative">
-                <Input
-                  type={showSecret ? 'text' : 'password'}
-                  value={r2Config.secretAccessKey}
-                  onChange={e => updateR2('secretAccessKey', e.target.value)}
-                  placeholder="کلیلی نهێنی"
-                  dir="ltr"
-                  className="pe-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSecret(!showSecret)}
-                  className="absolute top-1/2 -translate-y-1/2 end-3 text-muted-foreground hover:text-foreground"
-                >
+                <Input type={showSecret ? 'text' : 'password'} value={r2Config.secretAccessKey} onChange={e => updateR2('secretAccessKey', e.target.value)} placeholder="کلیلی نهێنی" dir="ltr" className="pe-10" />
+                <button type="button" onClick={() => setShowSecret(!showSecret)} className="absolute top-1/2 -translate-y-1/2 end-3 text-muted-foreground hover:text-foreground">
                   {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
             <div className="space-y-2">
               <Label>Bucket Name</Label>
-              <Input
-                value={r2Config.bucketName}
-                onChange={e => updateR2('bucketName', e.target.value)}
-                placeholder="ناوی باکەت"
-                dir="ltr"
-              />
+              <Input value={r2Config.bucketName} onChange={e => updateR2('bucketName', e.target.value)} placeholder="ناوی باکەت" dir="ltr" />
             </div>
             <div className="space-y-2">
               <Label>Public Domain (ئارەزوومەندانە)</Label>
-              <Input
-                value={r2Config.publicDomain}
-                onChange={e => updateR2('publicDomain', e.target.value)}
-                placeholder="https://pub-xxxx.r2.dev"
-                dir="ltr"
-              />
-              <p className="text-xs text-muted-foreground">
-                دۆمەینی گشتی باکەتەکە بۆ نیشاندانی وێنەکان. دەبێت دەستگەیشتنی گشتی چالاک بێت.
-              </p>
+              <Input value={r2Config.publicDomain} onChange={e => updateR2('publicDomain', e.target.value)} placeholder="https://pub-xxxx.r2.dev" dir="ltr" />
+              <p className="text-xs text-muted-foreground">دۆمەینی گشتی باکەتەکە بۆ نیشاندانی وێنەکان. دەبێت دەستگەیشتنی گشتی چالاک بێت.</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      <Button onClick={handleSave} className="gap-2">
-        <Save className="h-4 w-4" />
+      <Button onClick={handleSave} className="gap-2" disabled={updateMutation.isPending}>
+        {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
         پاشەکەوتکردن
       </Button>
     </div>
